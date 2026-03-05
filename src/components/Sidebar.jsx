@@ -73,9 +73,9 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                 className={`group flex items-center ${sidebar ? "justify-between px-3 py-2.5" : "justify-center w-12 h-12 self-center"} rounded-xl hover:bg-[#5030E5]/5 transition-all duration-200 cursor-pointer`}
                             >
                                 <div className="flex items-center gap-4 overflow-hidden">
-                                    <div className={`h-[8px] w-[8px] rounded-full flex-shrink-0 ${project.status === "Completed" ? "bg-[#7AC555]" :
-                                        project.status === "OnProgress" ? "bg-[#FFA500]" :
-                                            project.status === "OnHold" ? "bg-[#D87272]" :
+                                    <div className={`h-[8px] w-[8px] rounded-full flex-shrink-0 ${project.status === "completed" ? "bg-[#7AC555]" :
+                                        project.status === "inProgress" ? "bg-[#FFA500]" :
+                                            project.status === "onHold" ? "bg-[#D87272]" :
                                                 "bg-[#5030E5]"
                                         }`}></div>
                                     <span className={`text-[16px] font-medium text-[#787486] transition-all duration-300 group-hover:text-[#0D062D] ${sidebar ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none absolute"} whitespace-nowrap`}>

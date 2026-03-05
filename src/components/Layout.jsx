@@ -4,6 +4,7 @@ import edit from '/edit.svg'
 import link from '/link.svg'
 import share from '/share.svg'
 import category from '/category.svg'
+import Board from '../components/Board'
 
 const Layout = ({ selectedProject }) => {
     return (
@@ -61,6 +62,8 @@ const Layout = ({ selectedProject }) => {
                     <img className='h-6 w-6' src={category} alt="" />
                 </div>
             </div>
+
+            <Board tasks={selectedProject.tasks} />
         </div>
     )
 }
