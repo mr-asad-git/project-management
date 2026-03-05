@@ -3,6 +3,7 @@ import users from '../mui/users'
 import edit from '/edit.svg'
 import link from '/link.svg'
 import share from '/share.svg'
+import category from '/category.svg'
 
 const Layout = ({ selectedProject }) => {
     return (
@@ -47,11 +48,17 @@ const Layout = ({ selectedProject }) => {
                         </select>
                     </div>
                 </div>
-                <div className="share-actions flex flex-row gap-5">
+                <div className="share-actions flex flex-row gap-5 items-center">
                     <div className="share-button h-[40px] w-[110px] flex justify-center items-center rounded-md border gap-2"><img src={share} alt="" /><p className='text-[16px] font-[600] text-[var(--text-color)]'>Share</p></div>
-                    <div className="">
-                        <div className="h-[50px] w-[50px] bg-[var(--button-color)] flex justify-center items-center border-l-2 border-black"></div>
+                    <div className="px-[1rem] flex justify-center items-center border-l-[1px] border-[#DBDBDB] h-[40px]">
+                        <div className="h-[50px] w-[50px] bg-[var(--button-color)] flex justify-center items-center rounded-md">
+                            <div className="flex flex-col gap-[5px] flex justify-center items-center">
+                                <div className="h-[10px] w-[25px] bg-white rounded-[2px]"></div>
+                                <div className="h-[10px] w-[25px] bg-white rounded-[2px]"></div>
+                            </div>
+                        </div>
                     </div>
+                    <img className='h-6 w-6' src={category} alt="" />
                 </div>
             </div>
         </div>
