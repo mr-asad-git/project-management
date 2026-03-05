@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+    --light-gray: #F5F5F5;
+    --dark-gray: #DBDBDB;
+    --text-color: #787486;
+    --button-color: #5030E5;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('./font/Inter/static/Inter_18pt-Regular.ttf');
+}
