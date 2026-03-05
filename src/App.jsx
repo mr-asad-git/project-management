@@ -14,7 +14,7 @@ const App = () => {
 
   const selectedProject = projects.find(
     project => project.id === selectedProjectID
-  );
+  ) || projects[0];
 
   return (
     <div className='flex'>

@@ -53,8 +53,8 @@ const Layout = ({ selectedProject }) => {
                     <div className="px-[1rem] flex justify-center items-center border-l-[1px] border-[#DBDBDB] h-[40px]">
                         <div className="h-[50px] w-[50px] bg-[var(--button-color)] flex justify-center items-center rounded-md">
                             <div className="flex flex-col gap-[5px] flex justify-center items-center">
-                                <div className="h-[10px] w-[25px] bg-white rounded-[2px]"></div>
-                                <div className="h-[10px] w-[25px] bg-white rounded-[2px]"></div>
+                                <div className="h-[8px] w-[25px] bg-white rounded-[2px]"></div>
+                                <div className="h-[8px] w-[25px] bg-white rounded-[2px]"></div>
                             </div>
                         </div>
                     </div>
