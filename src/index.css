@@ -5,9 +5,40 @@
     --dark-gray: #DBDBDB;
     --text-color: #787486;
     --button-color: #5030E5;
+    --bg-main: #FFFFFF;
+    --font-inter: "Inter", sans-serif;
 }
 
 @font-face {
     font-family: 'Inter';
-    src: url('./font/Inter/static/Inter_18pt-Regular.ttf');
+    /* Using absolute path since it's in public folder */
+    src: url('/font/Inter/static/Inter_18pt-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/font/Inter/static/Inter_18pt-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/font/Inter/static/Inter_18pt-Bold.ttf') format('truetype');
+    font-weight: 700;
+}
+
+body {
+    font-family: var(--font-inter);
+    color: #0D062D;
+    background: var(--bg-main);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
