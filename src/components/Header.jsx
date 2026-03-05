@@ -1,8 +1,8 @@
 import React from 'react'
 
-import message from "/public/headerIcons/message.svg"
-import notification from "/public/headerIcons/notification.svg"
-import calendar from "/public/headerIcons/calendar.svg"
+import message from "/headerIcons/message.svg"
+import notification from "/headerIcons/notification.svg"
+import calendar from "/headerIcons/calendar.svg"
 import users from "../mui/users"
 
 const Header = () => {

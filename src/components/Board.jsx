@@ -12,7 +12,7 @@ const Board = ({ tasks }) => {
 
             <Column title="To Do" tasks={todoTasks} />
 
-            <Column title="On Progress" tasks={progressTasks} />
+            <Column title="In Progress" tasks={progressTasks} />
 
             <Column title="Completed" tasks={completedTasks} />
 
