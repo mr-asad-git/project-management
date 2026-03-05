@@ -1,37 +1,8 @@
 import React from 'react'
+import Projects from "../mui/projects"
 
-const Sidebar = ({ sidebar, setSideBar, toggleSidebar }) => {
+const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProjectID }) => {
 
-    const Projects = [
-        {
-            id: 1,
-            name: "Mobile App",
-            status: "Completed",
-        },
-
-        {
-            id: 2,
-            name: "Typescript",
-            status: "Completed",
-        },
-
-        {
-            id: 3,
-            name: "Design System",
-            status: "OnProgress",
-        },
-
-        {
-            id: 4,
-            name: "Wireframes",
-            status: "OnHold",
-        },
-        {
-            id: 5,
-            name: "Web Redesign App",
-            status: "Todo",
-        },
-    ]
     return (
         <aside className={`Sidebar h-screen sticky top-0 left-0 ${sidebar ? "w-[270px]" : "w-[100px]"} transition-all duration-300 ease-in-out border-r border-[#DBDBDB] bg-white flex flex-col overflow-x-hidden overflow-y-auto scrollbar-hide select-none z-50`}>
             <div className="flex flex-col h-full w-full"> {/* Ensure it takes full width of the parent aside */}
@@ -50,7 +21,7 @@ const Sidebar = ({ sidebar, setSideBar, toggleSidebar }) => {
                         >
                             <img
                                 src={sidebar ? "/dashboardclose.svg" : "/dashboardopen.svg"}
-                                className='h-[20px] w-[20px] object-contain'
+                                className='h-[25px] w-[25px] object-contain'
                                 alt="Toggle"
                             />
                         </button>
@@ -98,6 +69,7 @@ const Sidebar = ({ sidebar, setSideBar, toggleSidebar }) => {
                         {Projects.map((project) => (
                             <div
                                 key={project.id}
+                                onClick={() => setSelectedProjectID(project.id)}
                                 className={`group flex items-center ${sidebar ? "justify-between px-3 py-2.5" : "justify-center w-12 h-12 self-center"} rounded-xl hover:bg-[#5030E5]/5 transition-all duration-200 cursor-pointer`}
                             >
                                 <div className="flex items-center gap-4 overflow-hidden">
@@ -115,21 +87,21 @@ const Sidebar = ({ sidebar, setSideBar, toggleSidebar }) => {
                         ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Premium Help Card */}
-                <div className={`px-6 py-6 transition-all duration-500 ease-in-out ${sidebar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
-                    <div className="bg-[#F5F5F5] p-5 rounded-3xl relative flex flex-col items-center text-center gap-3 shadow-sm border border-white">
-                        <div className="absolute -top-6 w-12 h-12 bg-[#F5F5F5] rounded-full flex items-center justify-center border-4 border-white shadow-sm">
-                            <div className="w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-600">
-                                <span className="text-[18px]">💡</span>
-                            </div>
+            {/* Premium Help Card */}
+            <div className={`px-6 py-6 transition-all duration-500 ease-in-out ${sidebar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
+                <div className="bg-[#F5F5F5] p-5 rounded-3xl relative flex flex-col items-center text-center gap-3 shadow-sm border border-white">
+                    <div className="absolute -top-6 w-12 h-12 bg-[#F5F5F5] rounded-full flex items-center justify-center border-4 border-white shadow-sm">
+                        <div className="w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-600">
+                            <span className="text-[18px]">💡</span>
                         </div>
-                        <h4 className="text-[14px] font-bold mt-4 text-[#0D062D]">Thoughts Time</h4>
-                        <p className="text-[12px] text-[#787486] leading-relaxed">We don't have any notice for now, till then share your thoughts.</p>
-                        <button className="w-full py-2.5 bg-white text-[#0D062D] text-[12px] font-bold rounded-lg hover:bg-black hover:text-white transition-all duration-300 shadow-sm border border-[#DBDBDB]/50">
-                            Write a message
-                        </button>
                     </div>
+                    <h4 className="text-[14px] font-bold mt-4 text-[#0D062D]">Thoughts Time</h4>
+                    <p className="text-[12px] text-[#787486] leading-relaxed">We don't have any notice for now, till then share your thoughts.</p>
+                    <button className="w-full py-2.5 bg-white text-[#0D062D] text-[12px] font-bold rounded-lg hover:bg-black hover:text-white transition-all duration-300 shadow-sm border border-[#DBDBDB]/50">
+                        Write a message
+                    </button>
                 </div>
             </div>
         </aside>
