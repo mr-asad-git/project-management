@@ -10,7 +10,10 @@ const Projects = [
             { id: 104, title: "Onboarding Illustrations", text: "Onboarding Illustrations help us understand the problem better. ", priority: "Low", status: "inProgress", comments: 1, files: 14 },
             { id: 105, title: "User Flow", text: "User Flow helps us understand the problem better. ", priority: "High", status: "inProgress", comments: 0, files: 9 },
             { id: 106, title: "Mobile App Design", text: "Mobile App Design helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 },
-            { id: 107, title: "Design System", text: "Design System helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 }
+            { id: 107, title: "Design System", text: "Design System helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 },
+            { id: 108, title: "App Testing", text: "Testing the app for bugs and issues. ", priority: "High", status: "todo", comments: 5, files: 2 },
+            { id: 109, title: "Deployment", text: "Deploying the app to production. ", priority: "High", status: "todo", comments: 0, files: 1 },
+            { id: 110, title: "User Feedback", text: "Gathering feedback from users. ", priority: "Low", status: "todo", comments: 20, files: 0 }
         ]
     },
 
@@ -22,7 +25,9 @@ const Projects = [
             { id: 201, title: "Setup Typescript", text: "Setup Typescript helps us understand the problem better. ", priority: "High", status: "todo", comments: 12, files: 15 },
             { id: 202, title: "Type Interfaces", text: "Type Interfaces helps us understand the problem better. ", priority: "High", status: "todo", comments: 12, files: 15 },
             { id: 203, title: "Convert Components", text: "Convert Components helps us understand the problem better. ", priority: "High", status: "inProgress", comments: 12, files: 15 },
-            { id: 204, title: "Fix Type Errors", text: "Fix Type Errors helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 }
+            { id: 204, title: "Fix Type Errors", text: "Fix Type Errors helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 },
+            { id: 205, title: "Code Review", text: "Reviewing the code for best practices. ", priority: "High", status: "todo", comments: 5, files: 2 },
+            { id: 206, title: "Documentation", text: "Documenting the new types. ", priority: "Low", status: "todo", comments: 0, files: 1 }
         ]
     },
 
@@ -34,7 +39,10 @@ const Projects = [
             { id: 301, title: "Color Palette", text: "Color Palette helps us understand the problem better. ", priority: "Low", status: "todo", comments: 12, files: 15 },
             { id: 302, title: "Typography", text: "Typography helps us understand the problem better. ", priority: "Low", status: "todo", comments: 12, files: 15 },
             { id: 303, title: "Component Library", text: "Component Library helps us understand the problem better. ", priority: "High", status: "inProgress", comments: 12, files: 15 },
-            { id: 304, title: "Button Variants", text: "Button Variants helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 }
+            { id: 304, title: "Button Variants", text: "Button Variants helps us understand the problem better. ", priority: "Completed", status: "completed", comments: 12, files: 15 },
+            { id: 305, title: "Input Fields", text: "Designing various input fields. ", priority: "High", status: "todo", comments: 5, files: 2 },
+            { id: 306, title: "Modals & Dialogs", text: "Creating standard modals. ", priority: "Medium", status: "todo", comments: 2, files: 5 },
+            { id: 307, title: "Icons Update", text: "Updating the icon set to be consistent. ", priority: "Low", status: "inProgress", comments: 1, files: 0 }
         ]
     },
 

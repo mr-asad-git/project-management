@@ -12,7 +12,7 @@ const Header = () => {
                 <img src="/search.svg" alt="Search" />
                 <input type="text" placeholder='Search something...' className='bg-transparent outline-none text-[var(--text-color)]' />
             </div>
-            <div className="actions flex justify-between gap-10 items-center">
+            <div className="actions flex justify-between gap-20 items-center">
                 <div className="buttonIcons flex flex-row gap-6 ">
                     <button><img className='h-[24px] w-[24px] object-contain' src={calendar} alt="Calendar" /></button>
                     <button><img className='h-[24px] w-[24px] object-contain' src={message} alt="Message" /></button>
