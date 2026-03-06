@@ -81,7 +81,7 @@ const App = () => {
       <div className="flex flex-col w-full">
         <Header />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home projectsData={projectsData} projectTasks={projectTasks} />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/members" element={<Members />} />

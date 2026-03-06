@@ -7,6 +7,12 @@
     --button-color: #5030E5;
     --bg-main: #FFFFFF;
     --font-inter: "Inter", sans-serif;
+
+    /*Cards Color*/
+    --card-todo: #5030E5;
+    --card-inprogress: #FFA500;
+    --card-completed: #7AC555;
+    --card-onhold: #D87272;
 }
 
 @font-face {

@@ -18,7 +18,7 @@ const SORT_OPTIONS = [
     { label: 'Default', value: 'default' },
     { label: 'Priority ↑', value: 'priority_asc' },
     { label: 'Priority ↓', value: 'priority_desc' },
-    { label: 'Title A–Z', value: 'title_asc' },
+    { label: 'Title A-Z', value: 'title_asc' },
 ]
 
 const PRIORITY_RANK = { High: 0, Low: 1, Completed: 2 }
@@ -63,7 +63,7 @@ const Layout = ({ selectedProject, onTaskMove, onEditProject }) => {
     const activeSortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label ?? 'Sort'
 
     return (
-        <div className='p-15 flex flex-col gap-[2rem]'>
+        <div className='px-15 py-8 flex flex-col gap-[2rem]'>
 
             {/* ── Edit Project Modal ── */}
             {showEditModal && (
