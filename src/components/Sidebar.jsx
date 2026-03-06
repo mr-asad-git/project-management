@@ -1,5 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 /* ── Constants ───────────────────────────────────────────────────── */
 const STATUS_OPTIONS = [
@@ -10,6 +26,96 @@ const STATUS_OPTIONS = [
 ]
 
 const statusColor = (s) => ({ completed: '#7AC555', inProgress: '#FFA500', onHold: '#D87272' }[s] ?? '#5030E5')
+
+/* ── Sortable Project Item ───────────────────────────────────────── */
+const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisabled, onSelect, onToggleMenu, onEdit, onDelete }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: project.id,
+        disabled: isDragDisabled
+    });
+
+    const navigate = useNavigate();
+
+    // Track whether the pointer actually moved enough to constitute a drag.
+    // isDragging from useSortable is already false by the time the click fires,
+    // so we use a ref that stays true through the click and is cleared right after.
+    const wasDragged = React.useRef(false);
+
+    React.useEffect(() => {
+        if (isDragging) {
+            wasDragged.current = true;
+        }
+    }, [isDragging]);
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        position: 'relative',
+        zIndex: isDragging ? 99 : (menuOpen ? 50 : 1),
+        opacity: isDragging ? 0.8 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative">
+            <div
+                onClick={(e) => {
+                    if (wasDragged.current) {
+                        e.preventDefault();
+                        wasDragged.current = false;
+                        return;
+                    }
+                    onSelect(project.id);
+                    navigate(`/project/${project.id}`);
+                }}
+                className={`group flex items-center ${sidebar ? 'justify-between px-3 py-2.5' : 'justify-center w-12 h-12 self-center'} rounded-xl transition-all duration-200 cursor-grab active:cursor-grabbing ${isActive ? 'bg-[#5030E5]/10' : 'hover:bg-[#5030E5]/5'}`}
+            >
+                <div className="flex items-center gap-4 overflow-hidden pointer-events-none">
+                    <div className="h-[8px] w-[8px] rounded-full flex-shrink-0" style={{ background: statusColor(project.status) }} />
+                    <span className={`text-[16px] font-medium transition-all duration-300 ${isActive ? 'text-[#0D062D] font-bold' : 'text-[#787486] group-hover:text-[#0D062D]'} ${sidebar ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'} whitespace-nowrap select-none`}>
+                        {project.name}
+                    </span>
+                </div>
+
+                {sidebar && (
+                    <button
+                        onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleMenu(); }}
+                        className="p-1 rounded-md hover:bg-black/5 transition-colors z-10 relative"
+                        onPointerDown={e => e.stopPropagation()}
+                    >
+                        <img src="/setting.svg" className="h-[16px] w-[16px] object-contain opacity-0 group-hover:opacity-50 group-focus:opacity-50 transition-opacity pointer-events-none" alt="Options" />
+                    </button>
+                )}
+            </div>
+
+            {/* Context menu */}
+            {menuOpen && sidebar && (
+                <div className="absolute left-[calc(100%-8px)] top-0 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] ring-1 ring-black/5 overflow-hidden z-[9999] w-[140px] drop-shadow-2xl" onPointerDown={e => e.stopPropagation()}>
+                    <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#787486] hover:bg-[#5030E5]/5 hover:text-[#5030E5] transition-colors"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Edit
+                    </button>
+                    <div className="h-[1px] bg-[#DBDBDB]/60 mx-3" />
+                    <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#D8727D] hover:bg-[#D8727D]/5 transition-colors"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
 
 /* ── Reusable Project Modal (Add / Edit) ─────────────────────────── */
 const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', onSubmit, onClose }) => {
@@ -99,7 +205,7 @@ const DeleteModal = ({ projectName, onConfirm, onClose }) => (
 )
 
 /* ── Sidebar ─────────────────────────────────────────────────────── */
-const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProjectID, projects, onAddProject, onEditProject, onDeleteProject }) => {
+const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProjectID, projects, onAddProject, onEditProject, onDeleteProject, onReorderProjects }) => {
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -107,11 +213,15 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
     const [editProject, setEditProject] = useState(null)
     const [deleteProject, setDeleteProject] = useState(null)
     const [openMenuId, setOpenMenuId] = useState(null)
+    const [projectSortFilter, setProjectSortFilter] = useState('default')
+    const [showProjectSort, setShowProjectSort] = useState(false)
     const menuRef = useRef(null)
+    const sortFilterRef = useRef(null)
 
     useEffect(() => {
         const handler = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null)
+            if (sortFilterRef.current && !sortFilterRef.current.contains(e.target)) setShowProjectSort(false)
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
@@ -131,6 +241,41 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
         setDeleteProject(null)
         if (selectedProjectID === id) navigate('/')
     }
+
+    const sortedProjects = useMemo(() => {
+        if (!projects) return [];
+        let sorted = [...projects];
+        if (projectSortFilter === 'a-z') {
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (projectSortFilter === 'z-a') {
+            sorted.sort((a, b) => b.name.localeCompare(a.name));
+        } else if (projectSortFilter === 'status') {
+            const statusOrder = { 'todo': 0, 'inProgress': 1, 'completed': 2, 'onHold': 3 };
+            sorted.sort((a, b) => (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0));
+        }
+        return sorted;
+    }, [projects, projectSortFilter]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (active.id !== over?.id && onReorderProjects && projectSortFilter === 'default') {
+            const oldIndex = sortedProjects.findIndex((p) => p.id === active.id);
+            const newIndex = sortedProjects.findIndex((p) => p.id === over.id);
+            const newProjects = arrayMove(sortedProjects, oldIndex, newIndex);
+            onReorderProjects(newProjects);
+        }
+    };
 
     return (
         <>
@@ -163,11 +308,11 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                 />
             )}
 
-            <aside className={`Sidebar h-screen sticky top-0 left-0 ${sidebar ? 'w-[270px]' : 'w-[100px]'} transition-all duration-300 ease-in-out border-r border-[#DBDBDB] bg-white flex flex-col overflow-x-hidden overflow-y-auto scrollbar-hide select-none z-50`}>
-                <div className="flex flex-col h-full w-full">
+            <aside className={`Sidebar z-100 h-screen sticky top-0 left-0 ${sidebar ? 'w-[270px]' : 'w-[100px]'} transition-all duration-300 ease-in-out border-r border-[#DBDBDB] bg-white flex flex-col overflow-x-hidden overflow-y-auto scrollbar-hide select-none z-50`}>
+                <div className="flex flex-col min-h-full w-full">
 
                     {/* Logo / toggle */}
-                    <div className={`Header flex items-center ${sidebar ? 'justify-between px-6' : 'justify-center'} h-20 border-b border-[#DBDBDB]/50`}>
+                    <div className={`Header sticky top-0 left-0 z-50 bg-white/50 backdrop-blur-sm flex items-center ${sidebar ? 'justify-between px-6' : 'justify-center'} h-20 border-b border-[#DBDBDB]/50`}>
                         <div className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${sidebar ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>
                             <img src="/logo.svg" className="h-[24px] w-[24px] object-contain flex-shrink-0" alt="Logo" />
                             <h1 className="font-bold text-[18px] tracking-tight text-[#0D062D] whitespace-nowrap">Project M.</h1>
@@ -201,95 +346,107 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                     <div className="px-6"><div className="h-[1px] w-full bg-[#DBDBDB]/50" /></div>
 
                     {/* Projects */}
-                    <div className="flex-1 flex flex-col py-4 overflow-hidden">
-                        <div className={`ProjectsHeader flex items-center ${sidebar ? 'justify-between px-7' : 'justify-center px-0'} mb-4`}>
+                    <div className="flex flex-col py-4 flex-grow relative z-[80]">
+                        <div className={`ProjectsHeader flex items-center ${sidebar ? 'justify-between px-7' : 'justify-center px-0'} mb-4 relative z-50`}>
                             <span className={`font-bold text-[12px] tracking-wider text-[#787486] uppercase transition-all duration-300 ${sidebar ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 absolute pointer-events-none'}`}>
                                 MY PROJECTS
                             </span>
-                            <button
-                                onClick={() => setShowAddModal(true)}
-                                className={`hover:bg-[#5030E5]/10 p-1.5 rounded-md transition-colors flex-shrink-0 group ${!sidebar && 'hidden'}`}
-                                title="Add project"
-                            >
-                                <img src="/add-task.svg" className="h-[16px] w-[16px] object-contain opacity-40 group-hover:opacity-100 transition-opacity" alt="Add" />
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col gap-1 px-4 overflow-y-auto scrollbar-hide" ref={menuRef}>
-                            {(projects ?? []).map((project) => {
-                                const isActive = location.pathname === `/project/${project.id}`
-                                const menuOpen = openMenuId === project.id
-                                return (
-                                    <div key={project.id} className="relative">
-                                        <Link
-                                            to={`/project/${project.id}`}
-                                            onClick={() => { setSelectedProjectID(project.id); setOpenMenuId(null) }}
-                                            className={`group flex items-center ${sidebar ? 'justify-between px-3 py-2.5' : 'justify-center w-12 h-12 self-center'} rounded-xl transition-all duration-200 cursor-pointer ${isActive ? 'bg-[#5030E5]/10' : 'hover:bg-[#5030E5]/5'}`}
-                                        >
-                                            <div className="flex items-center gap-4 overflow-hidden">
-                                                <div className="h-[8px] w-[8px] rounded-full flex-shrink-0" style={{ background: statusColor(project.status) }} />
-                                                <span className={`text-[16px] font-medium transition-all duration-300 ${isActive ? 'text-[#0D062D] font-bold' : 'text-[#787486] group-hover:text-[#0D062D]'} ${sidebar ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'} whitespace-nowrap`}>
-                                                    {project.name}
-                                                </span>
-                                            </div>
-
-                                            {sidebar && (
+                            <div className={`flex items-center gap-2 transition-all group ${!sidebar && 'hidden'}`}>
+                                <div className="relative" ref={sortFilterRef}>
+                                    <button
+                                        onClick={() => setShowProjectSort(!showProjectSort)}
+                                        className="hover:bg-[#5030E5]/10 p-1.5 rounded-md transition-colors flex-shrink-0"
+                                        title="Filter Projects"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#787486] group-hover:text-[#5030E5] transition-colors">
+                                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                                        </svg>
+                                    </button>
+                                    {showProjectSort && (
+                                        <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-[#DBDBDB]/60 overflow-hidden z-50 py-1">
+                                            <div className="px-3 py-1.5 text-[10px] font-bold text-[#787486] uppercase tracking-wider">Sort by</div>
+                                            {[
+                                                { label: 'Default', val: 'default' },
+                                                { label: 'A-Z', val: 'a-z' },
+                                                { label: 'Z-A', val: 'z-a' },
+                                                { label: 'Status', val: 'status' }
+                                            ].map(f => (
                                                 <button
-                                                    onClick={e => { e.preventDefault(); e.stopPropagation(); setOpenMenuId(menuOpen ? null : project.id) }}
-                                                    className="p-1 rounded-md hover:bg-black/5 transition-colors"
+                                                    key={f.val}
+                                                    onClick={() => { setProjectSortFilter(f.val); setShowProjectSort(false); }}
+                                                    className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${projectSortFilter === f.val ? 'bg-[#5030E5]/10 text-[#5030E5]' : 'text-[#787486] hover:bg-gray-50'}`}
                                                 >
-                                                    <img src="/setting.svg" className="h-[16px] w-[16px] object-contain opacity-0 group-hover:opacity-50 transition-opacity" alt="Options" />
+                                                    {f.label}
                                                 </button>
-                                            )}
-                                        </Link>
-
-                                        {/* Context menu */}
-                                        {menuOpen && sidebar && (
-                                            <div className="absolute right-2 top-full mt-1 bg-white rounded-xl shadow-xl border border-[#DBDBDB]/60 overflow-hidden z-40 w-[140px]">
-                                                <button
-                                                    onClick={() => { setEditProject(project); setOpenMenuId(null) }}
-                                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#787486] hover:bg-[#5030E5]/5 hover:text-[#5030E5] transition-colors"
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                                    </svg>
-                                                    Edit
-                                                </button>
-                                                <div className="h-[1px] bg-[#DBDBDB]/60 mx-3" />
-                                                <button
-                                                    onClick={() => { setDeleteProject(project); setOpenMenuId(null) }}
-                                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#D8727D] hover:bg-[#D8727D]/5 transition-colors"
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                                        <polyline points="3 6 5 6 21 6" />
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                    </svg>
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Thoughts card */}
-                <div className={`px-6 py-6 transition-all duration-500 ease-in-out ${sidebar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
-                    <div className="bg-[#F5F5F5] p-5 rounded-3xl relative flex flex-col items-center text-center gap-3 shadow-sm border border-white">
-                        <div className="absolute -top-6 w-12 h-12 bg-[#F5F5F5] rounded-full flex items-center justify-center border-4 border-white shadow-sm">
-                            <div className="w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-600">
-                                <span className="text-[18px]">💡</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="bg-[rgba(80,48,229,0.1)] hover:bg-[#5030E5] text-[#5030E5] hover:text-white rounded-md transition-colors flex-shrink-0 flex items-center justify-center p-0 w-[28px] h-[28px]"
+                                    title="Add project"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                        <h4 className="text-[14px] font-bold mt-4 text-[#0D062D]">Thoughts Time</h4>
-                        <p className="text-[12px] text-[#787486] leading-relaxed">We don't have any notice for now, till then share your thoughts.</p>
-                        <button className="w-full py-2.5 bg-white text-[#0D062D] text-[12px] font-bold rounded-lg hover:bg-black hover:text-white transition-all duration-300 shadow-sm border border-[#DBDBDB]/50">
-                            Write a message
-                        </button>
+
+                        <div className="flex flex-col gap-1 px-4 z-40 pb-4 h-full" ref={menuRef}>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={sortedProjects.map(p => p.id)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    {sortedProjects.map((project) => {
+                                        const isActive = location.pathname === `/project/${project.id}`
+                                        const menuOpen = openMenuId === project.id
+                                        return (
+                                            <SortableProjectItem
+                                                key={project.id}
+                                                project={project}
+                                                isActive={isActive}
+                                                menuOpen={menuOpen}
+                                                sidebar={sidebar}
+                                                isDragDisabled={projectSortFilter !== 'default'}
+                                                onSelect={(id) => { setSelectedProjectID(id); setOpenMenuId(null); }}
+                                                onToggleMenu={() => setOpenMenuId(menuOpen ? null : project.id)}
+                                                onEdit={() => { setEditProject(project); setOpenMenuId(null); }}
+                                                onDelete={() => { setDeleteProject(project); setOpenMenuId(null); }}
+                                            />
+                                        )
+                                    })}
+                                </SortableContext>
+                            </DndContext>
+                        </div>
                     </div>
+
+                    {/* Spacer to push the thoughts card down if the list is short */}
+                    <div className="flex-1" />
+
+                    {/* Thoughts card */}
+                    <div className={`px-6 pb-6 pt-2 mt-auto relative transition-all duration-500 ease-in-out z-10 ${sidebar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                        <div className="bg-[#F5F5F5] p-5 rounded-3xl relative flex flex-col items-center text-center gap-3 shadow-sm border border-white">
+                            <div className="absolute -top-6 w-12 h-12 bg-[#F5F5F5] rounded-full flex items-center justify-center border-4 border-white shadow-sm">
+                                <div className="w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-600">
+                                    <span className="text-[18px]">💡</span>
+                                </div>
+                            </div>
+                            <h4 className="text-[14px] font-bold mt-4 text-[#0D062D]">Thoughts Time</h4>
+                            <p className="text-[12px] text-[#787486] leading-relaxed">We don't have any notice for now, till then share your thoughts.</p>
+                            <button className="w-full py-2.5 bg-white text-[#0D062D] text-[12px] font-bold rounded-lg hover:bg-black hover:text-white transition-all duration-300 shadow-sm border border-[#DBDBDB]/50">
+                                Write a message
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </aside>
         </>

@@ -6,6 +6,7 @@
     --text-color: #787486;
     --button-color: #5030E5;
     --bg-main: #FFFFFF;
+    --bg-signup: #0089ED;
     --font-inter: "Inter", sans-serif;
 
     /*Cards Color*/
@@ -47,4 +48,16 @@ body {
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }

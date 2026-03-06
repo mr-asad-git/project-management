@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Layout from './components/Layout'
 import projectsData from './mui/projects'
+import SignUp from './pages/SignUp'
 
 import Home from './pages/Home'
 import Messages from './pages/Messages'
@@ -45,6 +46,45 @@ const App = () => {
     }));
   };
 
+  // Delete a task from the current project
+  const handleTaskDelete = (taskId) => {
+    setProjectTasks(prev => ({
+      ...prev,
+      [selectedProjectID]: prev[selectedProjectID].filter(t => t.id !== taskId),
+    }));
+  };
+
+  // Add a new task to a specific column in the current project
+  const handleTaskAdd = (status, { title, text = '', priority, image = null }) => {
+    const newTask = {
+      id: Date.now(),
+      title,
+      text,
+      priority,
+      status,
+      comments: 0,
+      files: 0,
+      image,
+    };
+    setProjectTasks(prev => ({
+      ...prev,
+      [selectedProjectID]: [...(prev[selectedProjectID] ?? []), newTask],
+    }));
+  };
+
+  // Update an existing task
+  const handleTaskUpdate = (taskId, updatedData) => {
+    setProjectTasks(prev => {
+      const newState = { ...prev };
+      for (const projectId in newState) {
+        newState[projectId] = newState[projectId].map(t =>
+          t.id === taskId ? { ...t, ...updatedData } : t
+        );
+      }
+      return newState;
+    });
+  };
+
   // Edit project name/status
   const handleEditProject = (id, { name, status }) => {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, name, status } : p))
@@ -65,6 +105,10 @@ const App = () => {
     setProjectTasks(prev => ({ ...prev, [newId]: [] }));
   };
 
+  const handleReorderProjects = (reorderedProjects) => {
+    setProjects(reorderedProjects);
+  };
+
   return (
     <div className='flex'>
       <Sidebar
@@ -77,6 +121,7 @@ const App = () => {
         onAddProject={handleAddProject}
         onEditProject={handleEditProject}
         onDeleteProject={handleDeleteProject}
+        onReorderProjects={handleReorderProjects}
       />
       <div className="flex flex-col w-full">
         <Header />
@@ -86,7 +131,7 @@ const App = () => {
           <Route path="/tasks" element={<Tasks projectTasks={projectTasks} projects={projects} />} />
           <Route path="/members" element={<Members projectTasks={projectTasks} />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onEditProject={handleEditProject} />} />
+          <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onTaskDelete={handleTaskDelete} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} onEditProject={handleEditProject} />} />
         </Routes>
       </div>
     </div>
