@@ -183,6 +183,7 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
                         onDrop={() => handleDrop(col.status)}
                         onTaskAdd={(taskData) => onTaskAdd && onTaskAdd(col.status, taskData)}
                         onTaskUpdate={onTaskUpdate}
+                        allTasks={tasks}
                     />
                 ))}
             </div>

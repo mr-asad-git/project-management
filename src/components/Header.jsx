@@ -45,6 +45,7 @@ const Header = () => {
     const [searchFocused, setSearchFocused] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
     const profileRef = useRef(null)
+    const searchInputRef = useRef(null)
 
     const currentUser = users[0]
 
@@ -60,6 +61,17 @@ const Header = () => {
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
+    }, [])
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault()
+                searchInputRef.current?.focus()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
 
     return (
@@ -101,6 +113,7 @@ const Header = () => {
                         onBlur={() => setSearchFocused(false)}
                         placeholder="Search tasks, projects, members…"
                         className='bg-transparent outline-none text-[14px] text-[#0D062D] placeholder:text-[#787486]/70 w-full font-medium'
+                        ref={searchInputRef}
                     />
                     {search && (
                         <button onClick={() => setSearch('')} className="text-[#787486] hover:text-[#0D062D] transition-colors flex-shrink-0">
@@ -111,9 +124,15 @@ const Header = () => {
                     )}
                     {/* Keyboard shortcut hint */}
                     {!searchFocused && !search && (
-                        <kbd className="hidden sm:flex items-center gap-0.5 text-[10px] font-medium text-[#787486]/60 bg-[#f3f4f6] border border-[#DBDBDB] rounded px-1.5 py-0.5 flex-shrink-0">
-                            ⌘K
-                        </kbd>
+                        <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 animate-in fade-in duration-500">
+                            <kbd className="flex items-center gap-0.5 text-[10px] font-bold text-[#787486]/70 bg-[#f3f4f6] border border-[#DBDBDB] rounded-md px-1.5 py-0.5 shadow-[0_1px_0_rgba(0,0,0,0.1)]">
+                                <span className="opacity-70">
+                                    {navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? '⌘' : 'Ctrl'}
+                                </span>
+                                <span className="opacity-40">+</span>
+                                <span>K</span>
+                            </kbd>
+                        </div>
                     )}
                 </div>
             </div>

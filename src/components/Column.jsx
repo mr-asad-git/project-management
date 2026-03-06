@@ -12,7 +12,7 @@ const ACCENT = {
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
 
-const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onTaskAdd, onTaskUpdate }) => {
+const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onTaskAdd, onTaskUpdate, allTasks = [] }) => {
     const accent = ACCENT[title] ?? '#D87272'
 
     const [showAddForm, setShowAddForm] = useState(false)
@@ -22,6 +22,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
     const [imageFile, setImageFile] = useState(null)         // File object
     const [imagePreview, setImagePreview] = useState(null)   // base64 data-URL
     const [imageError, setImageError] = useState('')
+    const [titleError, setTitleError] = useState('')
     const inputRef = useRef(null)
     const fileRef = useRef(null)
 
@@ -32,7 +33,32 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
     const [editPriority, setEditPriority] = useState('Low')
     const [editImagePreview, setEditImagePreview] = useState(null)
     const [editImageError, setEditImageError] = useState('')
+    const [editError, setEditError] = useState('')
     const editFileRef = useRef(null)
+
+    // --- Validation logic for title duplicates ---
+    React.useEffect(() => {
+        const trimmed = newTitle.trim().toLowerCase()
+        if (!trimmed) {
+            setTitleError('')
+            return
+        }
+        const isDuplicate = allTasks.some(t => t.title.trim().toLowerCase() === trimmed)
+        setTitleError(isDuplicate ? 'A task with this title already exists in this project.' : '')
+    }, [newTitle, allTasks])
+
+    React.useEffect(() => {
+        if (!editingTask) return
+        const trimmed = editName.trim().toLowerCase()
+        if (!trimmed) {
+            setEditError('')
+            return
+        }
+        const isDuplicate = allTasks.some(t =>
+            t.title.trim().toLowerCase() === trimmed && t.id !== editingTask.id
+        )
+        setEditError(isDuplicate ? 'A task with this title already exists in this project.' : '')
+    }, [editName, allTasks, editingTask])
 
     const openForm = () => {
         setShowAddForm(true)
@@ -42,6 +68,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
         setImageFile(null)
         setImagePreview(null)
         setImageError('')
+        setTitleError('')
         setTimeout(() => inputRef.current?.focus(), 50)
     }
 
@@ -79,7 +106,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
     const handleAdd = (e) => {
         e.preventDefault()
         const trimmed = newTitle.trim()
-        if (!trimmed) return
+        if (!trimmed || titleError) return
         onTaskAdd({ title: trimmed, text: newText.trim(), priority: newPriority, image: imagePreview ?? null })
         setShowAddForm(false)
         setNewTitle('')
@@ -95,6 +122,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
         setImageFile(null)
         setImagePreview(null)
         setImageError('')
+        setTitleError('')
     }
 
     // Task editing logic (Modal)
@@ -105,6 +133,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
         setEditPriority(task.priority || 'Low')
         setEditImagePreview(task.image || null)
         setEditImageError('')
+        setEditError('')
     }
 
     const onEditImageChange = (e) => {
@@ -126,7 +155,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
 
     const handleEditSave = (e) => {
         e.preventDefault()
-        if (!editName.trim()) return
+        if (!editName.trim() || editError) return
         onTaskUpdate(editingTask.id, {
             title: editName.trim(),
             text: editText.trim(),
@@ -179,15 +208,21 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                     style={{ borderColor: accent }}
                     onDragOver={e => e.stopPropagation()}
                 >
-                    {/* Title input */}
-                    <input
-                        ref={inputRef}
-                        value={newTitle}
-                        onChange={e => setNewTitle(e.target.value)}
-                        placeholder="Task title…"
-                        className="w-full text-[14px] font-medium outline-none px-2 py-1.5 rounded-lg border border-[#DBDBDB] focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/10 transition-all"
-                        onKeyDown={e => e.key === 'Escape' && handleCancel()}
-                    />
+                    <div className="flex flex-col gap-1">
+                        <input
+                            ref={inputRef}
+                            value={newTitle}
+                            onChange={e => setNewTitle(e.target.value)}
+                            placeholder="Task title…"
+                            className={`w-full text-[14px] font-medium outline-none px-2 py-1.5 rounded-lg border transition-all ${titleError ? 'border-red-500 bg-red-50' : 'border-[#DBDBDB] focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/10'}`}
+                            onKeyDown={e => e.key === 'Escape' && handleCancel()}
+                        />
+                        {titleError && (
+                            <span className="text-red-500 text-[10px] font-medium px-1 animate-in fade-in duration-200">
+                                {titleError}
+                            </span>
+                        )}
+                    </div>
 
                     {/* Priority pills */}
                     <div className="flex gap-1.5 flex-wrap">
@@ -274,7 +309,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                     <div className="flex gap-2">
                         <button
                             type="submit"
-                            disabled={!newTitle.trim()}
+                            disabled={!newTitle.trim() || !!titleError}
                             className="flex-1 py-1.5 rounded-lg text-[12px] font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                             style={{ background: accent }}
                         >
@@ -333,8 +368,9 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                                     type="text"
                                     value={editName}
                                     onChange={e => setEditName(e.target.value)}
-                                    className="border border-[#DBDBDB] rounded-xl px-4 py-2.5 text-[14px] outline-none focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20 transition-all font-medium"
+                                    className={`border rounded-xl px-4 py-2.5 text-[14px] outline-none transition-all font-medium ${editError ? 'border-red-500 focus:ring-red-100' : 'border-[#DBDBDB] focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20'}`}
                                 />
+                                {editError && <span className="text-red-500 text-[12px] font-medium mt-1 animate-in fade-in duration-200">{editError}</span>}
                             </div>
 
                             {/* Priority */}
@@ -402,7 +438,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setEditingTask(null)} className="flex-1 py-3 rounded-xl border border-[#DBDBDB] text-[#787486] font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
-                                <button type="submit" disabled={!editName.trim()} className="flex-1 py-3 rounded-xl bg-[#5030E5] text-white font-semibold hover:bg-[#3d22c4] transition-colors shadow-lg shadow-[#5030E5]/20">Save Changes</button>
+                                <button type="submit" disabled={!editName.trim() || !!editError} className="flex-1 py-3 rounded-xl bg-[#5030E5] text-white font-semibold hover:bg-[#3d22c4] transition-colors shadow-lg shadow-[#5030E5]/20">Save Changes</button>
                             </div>
                         </form>
                     </div>

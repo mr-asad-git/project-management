@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Layout from './components/Layout'
 import projectsData from './mui/projects'
 import SignUp from './pages/SignUp'
+import Error from './pages/Error'
 
 import Home from './pages/Home'
 import Messages from './pages/Messages'
@@ -132,6 +133,7 @@ const App = () => {
           <Route path="/members" element={<Members projectTasks={projectTasks} />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onTaskDelete={handleTaskDelete} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} onEditProject={handleEditProject} />} />
+          <Route path="*" element={<Error />} />
         </Routes>
       </div>
     </div>

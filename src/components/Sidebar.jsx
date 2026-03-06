@@ -118,9 +118,28 @@ const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisab
 };
 
 /* ── Reusable Project Modal (Add / Edit) ─────────────────────────── */
-const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', onSubmit, onClose }) => {
+const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', existingProjects = [], currentProjectId = null, onSubmit, onClose }) => {
     const [name, setName] = useState(initialName)
     const [status, setStatus] = useState(initialStatus)
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+        const trimmedName = name.trim().toLowerCase()
+        if (!trimmedName) {
+            setError('')
+            return
+        }
+
+        const isDuplicate = existingProjects.some(p =>
+            p.name.trim().toLowerCase() === trimmedName && p.id !== currentProjectId
+        )
+
+        if (isDuplicate) {
+            setError('A project with this name already exists.')
+        } else {
+            setError('')
+        }
+    }, [name, existingProjects, currentProjectId])
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -130,7 +149,7 @@ const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', onSubmi
                     <button onClick={onClose} className="text-[#787486] hover:text-[#0D062D] text-[22px] leading-none transition-colors">×</button>
                 </div>
 
-                <form onSubmit={e => { e.preventDefault(); if (name.trim()) onSubmit({ name: name.trim(), status }) }} className="flex flex-col gap-5">
+                <form onSubmit={e => { e.preventDefault(); if (name.trim() && !error) onSubmit({ name: name.trim(), status }) }} className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[13px] font-semibold text-[#787486] uppercase tracking-wide">Project Name</label>
                         <input
@@ -139,8 +158,13 @@ const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', onSubmi
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="e.g. Marketing Campaign"
-                            className="border border-[#DBDBDB] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20 transition-all"
+                            className={`border ${error ? 'border-red-500' : 'border-[#DBDBDB]'} rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20 transition-all`}
                         />
+                        {error && (
+                            <span className="text-red-500 text-[12px] font-medium mt-1 ml-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                {error}
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -164,7 +188,7 @@ const ProjectModal = ({ title, initialName = '', initialStatus = 'todo', onSubmi
                         <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-[#DBDBDB] text-[#787486] font-semibold hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" disabled={!name.trim()} className="flex-1 py-3 rounded-xl bg-[#5030E5] text-white font-semibold hover:bg-[#3d22c4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                        <button type="submit" disabled={!name.trim() || !!error} className="flex-1 py-3 rounded-xl bg-[#5030E5] text-white font-semibold hover:bg-[#3d22c4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                             {title === 'New Project' ? 'Create Project' : 'Save Changes'}
                         </button>
                     </div>
@@ -283,6 +307,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
             {showAddModal && (
                 <ProjectModal
                     title="New Project"
+                    existingProjects={projects}
                     onClose={() => setShowAddModal(false)}
                     onSubmit={(data) => { onAddProject(data); setShowAddModal(false) }}
                 />
@@ -294,6 +319,8 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                     title="Edit Project"
                     initialName={editProject.name}
                     initialStatus={editProject.status}
+                    existingProjects={projects}
+                    currentProjectId={editProject.id}
                     onClose={() => setEditProject(null)}
                     onSubmit={(data) => { onEditProject(editProject.id, data); setEditProject(null) }}
                 />
