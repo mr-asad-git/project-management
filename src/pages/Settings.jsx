@@ -127,12 +127,19 @@ const Settings = ({ user, setUser }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+                            <span className={`text-[10px] font-bold ${name.length >= 20 ? 'text-red-500' : 'text-slate-400'}`}>
+                                {name.length}/20
+                            </span>
+                        </div>
                         <input
                             type="text"
                             value={name}
+                            maxLength={20}
                             onChange={e => setName(e.target.value)}
                             className={INPUT_CLS + ' w-full'}
+                            placeholder="Full Name"
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">

@@ -1,7 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react'
 import Column from './Column'
 
-// ── New column order: On Hold → To Do → In Progress → Completed ──
 const COLUMNS = [
     { title: 'On Hold', status: 'onHold' },
     { title: 'To Do', status: 'todo' },
@@ -15,7 +14,6 @@ const PRIORITY_OPTIONS = ['Low', 'High']
 const RestoreModal = ({ task, targetStatus, onConfirm, onCancel }) => {
     const needsPriority = !task.priority || task.priority === 'Completed'
     const [priority, setPriority] = useState(needsPriority ? 'Low' : task.priority)
-
     const targetLabel = COLUMNS.find(c => c.status === targetStatus)?.title ?? targetStatus
 
     return (
@@ -24,10 +22,9 @@ const RestoreModal = ({ task, targetStatus, onConfirm, onCancel }) => {
             onClick={onCancel}
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] p-7 flex flex-col gap-5 animate-[fadeSlideIn_0.18s_ease-out]"
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] p-7 flex flex-col gap-5"
                 onClick={e => e.stopPropagation()}
             >
-                {/* Icon + heading */}
                 <div className="flex flex-col items-center gap-3 text-center">
                     <div className="h-14 w-14 rounded-full bg-amber-100 flex items-center justify-center">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round">
@@ -45,7 +42,6 @@ const RestoreModal = ({ task, targetStatus, onConfirm, onCancel }) => {
                     </div>
                 </div>
 
-                {/* Priority picker — only shown if the task has no valid priority */}
                 {needsPriority && (
                     <div className="flex flex-col gap-2">
                         <p className="text-[12px] font-bold text-[#787486] uppercase tracking-wide text-center">
@@ -67,7 +63,6 @@ const RestoreModal = ({ task, targetStatus, onConfirm, onCancel }) => {
                     </div>
                 )}
 
-                {/* Actions */}
                 <div className="flex gap-3">
                     <button
                         onClick={onCancel}
@@ -94,10 +89,7 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
     const [overCol, setOverCol] = useState(null)
     const [isDragging, setIsDragging] = useState(false)
     const [overBin, setOverBin] = useState(false)
-
-    // Restore-confirmation state
     const [restorePending, setRestorePending] = useState(null)
-    // { taskId, task, targetStatus }
 
     const handleDragStart = useCallback((taskId, taskStatus) => {
         dragTaskId.current = taskId
@@ -116,14 +108,12 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
     const handleDrop = useCallback((targetStatus) => {
         const id = dragTaskId.current
         const from = dragStatus.current
-
         dragTaskId.current = null
         dragStatus.current = null
         setOverCol(null)
 
         if (!id || targetStatus === from) return
 
-        // Moving OUT of completed → require confirmation
         if (from === 'completed' && targetStatus !== 'completed') {
             const task = tasks.find(t => t.id === id)
             if (task) {
@@ -140,26 +130,36 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
     const handleRestoreConfirm = useCallback((newPriority) => {
         if (!restorePending) return
         const { taskId, task, targetStatus } = restorePending
-
-        // Move the task
         onTaskMove(taskId, targetStatus)
-
-        // If priority needs updating (was 'Completed' or missing)
         const shouldUpdatePriority = !task.priority || task.priority === 'Completed'
         if (shouldUpdatePriority && onTaskUpdate) {
-            // Give React one tick so the move settles first
             setTimeout(() => onTaskUpdate(taskId, { priority: newPriority }), 0)
-        } else if (!shouldUpdatePriority && onTaskUpdate) {
-            // Keep existing priority (no change needed)
         }
-
         setRestorePending(null)
     }, [restorePending, onTaskMove, onTaskUpdate])
 
+    // ── Delete Bin handlers ──
+    // We read the ID from dataTransfer (set by the TaskCard's onDragStart) because
+    // React refs can be cleared by a column's drop handler that fires simultaneously.
+    const handleBinDragOver = useCallback((e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'   // ← This shows the correct "move" cursor, not the blocked icon
+        setOverBin(true)
+    }, [])
+
+    const handleBinDragLeave = useCallback((e) => {
+        // Only reset if we actually left the bin area, not moved to a child element
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            setOverBin(false)
+        }
+    }, [])
+
     const handleBinDrop = useCallback((e) => {
         e.preventDefault()
-        if (dragTaskId.current && onTaskDelete) {
-            onTaskDelete(dragTaskId.current)
+        // Read task ID from the native drag payload — guaranteed to be present on drop
+        const idStr = e.dataTransfer.getData('text/plain')
+        if (idStr && onTaskDelete) {
+            onTaskDelete(Number(idStr))
         }
         dragTaskId.current = null
         dragStatus.current = null
@@ -179,9 +179,9 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
                         isOver={overCol === col.status}
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
-                        onDragOver={() => setOverCol(col.status)}
+                        onDragOver={() => !overBin && setOverCol(col.status)}
                         onDragLeave={() => setOverCol(prev => prev === col.status ? null : prev)}
-                        onDrop={() => handleDrop(col.status)}
+                        onDrop={() => !overBin && handleDrop(col.status)}
                         onTaskAdd={(taskData) => onTaskAdd && onTaskAdd(col.status, taskData)}
                         onTaskUpdate={onTaskUpdate}
                         allTasks={tasks}
@@ -199,45 +199,64 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
                 />
             )}
 
-            {/* ── Delete Bin ── */}
+            {/* ── Delete Bin ──
+                Using visibility + opacity instead of pointer-events-none so the
+                bin always remains a valid drop target in the DOM.
+            ── */}
             <div
-                className={`
-                    fixed bottom-8 left-1/2 -translate-x-1/2 z-[1000]
-                    flex flex-col items-center gap-2
-                    transition-all duration-300 ease-out pointer-events-none
-                    ${isDragging
-                        ? 'opacity-100 translate-y-0 pointer-events-auto'
-                        : 'opacity-0 translate-y-8'
-                    }
-                `}
-                onDragOver={e => { e.preventDefault(); setOverBin(true); }}
-                onDragLeave={() => setOverBin(false)}
+                style={{
+                    position: 'fixed',
+                    bottom: '2rem',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 1000,
+                    opacity: isDragging ? 1 : 0,
+                    visibility: isDragging ? 'visible' : 'hidden',
+                    transition: 'opacity 0.25s ease, visibility 0.25s ease',
+                }}
+                onDragOver={handleBinDragOver}
+                onDragLeave={handleBinDragLeave}
                 onDrop={handleBinDrop}
             >
-                <div className={`
-                    relative flex flex-col items-center justify-center gap-2
-                    px-8 py-4 rounded-2xl border-2 transition-all duration-200
-                    ${overBin
-                        ? 'bg-red-500/20 border-red-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] scale-110'
-                        : 'bg-white/90 border-red-300/60 shadow-[0_8px_32px_rgba(239,68,68,0.2)] backdrop-blur-sm'
-                    }
-                `}>
-                    {overBin && (
-                        <div className="absolute inset-0 rounded-2xl animate-pulse bg-red-500/10 pointer-events-none" />
-                    )}
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '16px 32px',
+                        borderRadius: '16px',
+                        border: `2px solid ${overBin ? '#ef4444' : 'rgba(248,113,113,0.5)'}`,
+                        background: overBin ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.92)',
+                        backdropFilter: 'blur(8px)',
+                        boxShadow: overBin
+                            ? '0 0 40px rgba(239,68,68,0.5)'
+                            : '0 8px 32px rgba(239,68,68,0.18)',
+                        transform: overBin ? 'scale(1.08)' : 'scale(1)',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
                     <svg
                         width="28" height="28"
                         viewBox="0 0 24 24" fill="none"
                         stroke={overBin ? '#ef4444' : '#f87171'}
                         strokeWidth="2" strokeLinecap="round"
-                        className={`transition-all duration-200 ${overBin ? 'scale-125' : ''}`}
+                        style={{ transition: 'all 0.2s ease', transform: overBin ? 'scale(1.2)' : 'scale(1)' }}
                     >
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         <line x1="10" y1="11" x2="10" y2="17" />
                         <line x1="14" y1="11" x2="14" y2="17" />
                     </svg>
-                    <span className={`text-[13px] font-bold transition-colors ${overBin ? 'text-red-500' : 'text-red-400'}`}>
+                    <span
+                        style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: overBin ? '#ef4444' : '#f87171',
+                            transition: 'color 0.2s ease',
+                            userSelect: 'none',
+                        }}
+                    >
                         {overBin ? 'Release to delete' : 'Drop to delete'}
                     </span>
                 </div>
