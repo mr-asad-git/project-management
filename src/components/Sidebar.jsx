@@ -79,20 +79,22 @@ const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisab
                 {sidebar && (
                     <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleMenu(); }}
-                        className="p-1 rounded-md hover:bg-black/5 transition-colors z-10 relative"
+                        className={`p-1.5 rounded-md transition-all z-10 relative group-hover:bg-[#5030E5]/10 ${isActive ? 'text-[#0D062D] opacity-100' : 'text-[#787486] opacity-0 group-hover:opacity-100'}`}
                         onPointerDown={e => e.stopPropagation()}
                     >
-                        <img src="/setting.svg" className="h-[16px] w-[16px] object-contain opacity-0 group-hover:opacity-50 group-focus:opacity-50 transition-opacity pointer-events-none" alt="Options" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="6" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="18" r="1.5" />
+                        </svg>
                     </button>
                 )}
             </div>
 
             {/* Context menu */}
             {menuOpen && sidebar && (
-                <div className="absolute left-[calc(100%-8px)] top-0 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] ring-1 ring-black/5 overflow-hidden z-[9999] w-[140px] drop-shadow-2xl" onPointerDown={e => e.stopPropagation()}>
+                <div className="absolute right-4 top-10 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.25)] ring-1 ring-black/5 overflow-hidden z-[10000] w-[140px] drop-shadow-2xl" onPointerDown={e => e.stopPropagation()}>
                     <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#787486] hover:bg-[#5030E5]/5 hover:text-[#5030E5] transition-colors"
+                        className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#0D062D] hover:bg-[#5030E5]/5 hover:text-[#5030E5] transition-colors"
                     >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -335,7 +337,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                 />
             )}
 
-            <aside className={`Sidebar z-100 h-screen sticky top-0 left-0 ${sidebar ? 'w-[270px]' : 'w-[100px]'} transition-all duration-300 ease-in-out border-r border-[#DBDBDB] bg-white flex flex-col overflow-x-hidden overflow-y-auto scrollbar-hide select-none z-50`}>
+            <aside className={`Sidebar z-[1000] h-screen sticky top-0 left-0 ${sidebar ? 'w-[270px]' : 'w-[100px]'} transition-all duration-300 ease-in-out border-r border-[#DBDBDB] bg-white flex flex-col overflow-y-auto scrollbar-hide select-none`}>
                 <div className="flex flex-col min-h-full w-full">
 
                     {/* Logo / toggle */}

@@ -80,7 +80,7 @@ const DonutChart = ({ segments, size = 120 }) => {
                 offset += dash;
                 return el;
             })}
-            <text x={cx} y={cy + 5} textAnchor="middle" fontSize="16" fontWeight="800" fill="#0f172a">
+            <text x={cx} y={cy + 5} textAnchor="middle" fontSize="16" fontWeight="800" fill="currentColor" className="text-[#0D062D]">
                 {total}
             </text>
             <text x={cx} y={cy + 18} textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="600" letterSpacing="1">
@@ -265,7 +265,7 @@ const Home = ({ projectTasks, projects }) => {
                             <div key={item.label} className="flex items-center gap-3">
                                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                                 <span className="text-sm text-slate-600 font-medium flex-1">{item.label}</span>
-                                <span className="text-sm font-black text-slate-800">{item.val}</span>
+                                <span className="text-sm font-black text-[#0D062D]">{item.val}</span>
                                 <span className="text-xs text-slate-400 w-9 text-right">{pct(item.val)}%</span>
                             </div>
                         ))}
