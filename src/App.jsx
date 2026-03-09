@@ -56,6 +56,13 @@ const App = () => {
     }));
   };
 
+  const handleTaskRestore = (task) => {
+    setProjectTasks(prev => ({
+      ...prev,
+      [selectedProjectID]: [...(prev[selectedProjectID] ?? []), task],
+    }));
+  };
+
   const handleTaskAdd = (status, { title, text = '', priority, image = null }) => {
     const newTask = {
       id: Date.now(),
@@ -135,7 +142,7 @@ const App = () => {
           <Route path="/tasks" element={<Tasks projectTasks={projectTasks} projects={projects} />} />
           <Route path="/members" element={<Members projectTasks={projectTasks} />} />
           <Route path="/settings" element={<Settings user={user} setUser={setUser} />} />
-          <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onTaskDelete={handleTaskDelete} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} onEditProject={handleEditProject} />} />
+          <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onTaskDelete={handleTaskDelete} onTaskRestore={handleTaskRestore} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} onEditProject={handleEditProject} />} />
           <Route path="*" element={<Error />} />
         </Routes>
       </div>

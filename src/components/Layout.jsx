@@ -23,7 +23,7 @@ const SORT_OPTIONS = [
 
 const PRIORITY_RANK = { High: 0, Low: 1, Completed: 2 }
 
-const Layout = ({ selectedProject, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate, onEditProject }) => {
+const Layout = ({ selectedProject, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTaskUpdate, onEditProject }) => {
     const [priorityFilter, setPriorityFilter] = useState('All')
     const [sortBy, setSortBy] = useState('default')
     const [showSort, setShowSort] = useState(false)
@@ -220,7 +220,7 @@ const Layout = ({ selectedProject, onTaskMove, onTaskDelete, onTaskAdd, onTaskUp
                 </p>
             )}
 
-            <Board tasks={tasks} onTaskMove={onTaskMove} onTaskDelete={onTaskDelete} onTaskAdd={onTaskAdd} onTaskUpdate={onTaskUpdate} />
+            <Board tasks={tasks} onTaskMove={onTaskMove} onTaskDelete={onTaskDelete} onTaskRestore={onTaskRestore} onTaskAdd={onTaskAdd} onTaskUpdate={onTaskUpdate} />
         </div>
     )
 }
