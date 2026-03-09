@@ -72,7 +72,7 @@ const Settings = ({ user, setUser }) => {
                 </div>
                 <button
                     onClick={save}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm transition-all duration-300 shadow-lg ${saved ? 'bg-green-500 text-white shadow-green-200' : 'bg-[#5030E5] text-white hover:bg-[#3d22c4] shadow-indigo-200'}`}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm transition-all duration-300 hover:shadow-lg cursor-pointer ${saved ? 'bg-green-500 text-white shadow-green-200' : 'bg-[#5030E5] text-white shadow-indigo-800'}`}
                 >
                     {saved ? (
                         <>
@@ -99,7 +99,7 @@ const Settings = ({ user, setUser }) => {
                     <img
                         src={image}
                         alt="Profile"
-                        className="w-20 h-20 rounded-[24px] object-cover shadow-lg shadow-indigo-200 ring-4 ring-indigo-50"
+                        className="w-20 h-20 rounded-[24px] object-cover ring-indigo-50"
                     />
                     <div className="flex flex-col gap-2">
                         <p className="font-black text-slate-900">{name}</p>

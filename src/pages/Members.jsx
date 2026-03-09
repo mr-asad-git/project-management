@@ -83,7 +83,7 @@ const Members = ({ projectTasks }) => {
                                         <img
                                             src={member.image}
                                             alt={member.name}
-                                            className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md"
+                                            className="w-14 h-14 rounded-2xl object-cover border-white shadow-md"
                                             onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                                         />
                                         <div className="w-14 h-14 rounded-2xl text-white font-black text-lg items-center justify-center hidden" style={{ backgroundColor: member.color }}>
