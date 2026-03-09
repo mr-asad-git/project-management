@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Layout from './components/Layout'
 import projectsData from './mui/projects'
+import usersData from './mui/users'
 import SignUp from './pages/SignUp'
 import Error from './pages/Error'
 
@@ -19,6 +20,7 @@ const App = () => {
   const { darkMode, toggleTheme } = useTheme()
   const [sidebar, setSideBar] = useState(true);
   const [selectedProjectID, setSelectedProjectID] = useState(1);
+  const [user, setUser] = useState(usersData[0]);
 
   const [projects, setProjects] = useState(projectsData);
 
@@ -126,13 +128,13 @@ const App = () => {
         onReorderProjects={handleReorderProjects}
       />
       <div className="flex flex-col w-full">
-        <Header />
+        <Header projects={projects} projectTasks={projectTasks} user={user} setUser={setUser} />
         <Routes>
           <Route path="/" element={<Home projectTasks={projectTasks} projects={projects} />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/tasks" element={<Tasks projectTasks={projectTasks} projects={projects} />} />
           <Route path="/members" element={<Members projectTasks={projectTasks} />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={<Settings user={user} setUser={setUser} />} />
           <Route path="/project/:projectId" element={<Layout selectedProject={selectedProject} onTaskMove={handleTaskMove} onTaskDelete={handleTaskDelete} onTaskAdd={handleTaskAdd} onTaskUpdate={handleTaskUpdate} onEditProject={handleEditProject} />} />
           <Route path="*" element={<Error />} />
         </Routes>

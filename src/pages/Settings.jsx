@@ -36,13 +36,26 @@ const Field = ({ label, sublabel, children }) => (
 
 const INPUT_CLS = "px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all bg-slate-50 w-64";
 
-const Settings = () => {
-    const [profile, setProfile] = useState({ name: 'Asad Khan', email: 'asad@example.com', role: 'Project Lead', bio: '' });
+const Settings = ({ user, setUser }) => {
+    // Local state for the form inputs, initialized from the global 'user' prop
+    const [name, setName] = useState(user.name);
+    const [location, setLocation] = useState(user.location);
+    const [image, setImage] = useState(user.image);
+
+    // Internal UI states
     const [notifs, setNotifs] = useState({ email: true, push: false, taskAssigned: true, taskCompleted: true, mentions: false, weekly: true });
     const [appearance, setAppearance] = useState({ compact: false, animations: true, language: 'en' });
     const [saved, setSaved] = useState(false);
 
     const save = () => {
+        // Update the global user state with only changed data
+        setUser(prev => ({
+            ...prev,
+            name: name,
+            location: location,
+            image: image
+        }));
+
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
     };
@@ -83,40 +96,52 @@ const Settings = () => {
             >
                 {/* Avatar */}
                 <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
-                    <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-[#5030E5] to-[#8b5cf6] text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                        {profile.name.split(' ').map(n => n[0]).join('')}
-                    </div>
+                    <img
+                        src={image}
+                        alt="Profile"
+                        className="w-20 h-20 rounded-[24px] object-cover shadow-lg shadow-indigo-200 ring-4 ring-indigo-50"
+                    />
                     <div className="flex flex-col gap-2">
-                        <p className="font-black text-slate-900">{profile.name}</p>
-                        <p className="text-sm text-slate-400 font-medium">{profile.email}</p>
-                        <button className="text-xs font-bold text-[#5030E5] hover:underline w-fit">Change avatar</button>
+                        <p className="font-black text-slate-900">{name}</p>
+                        <p className="text-sm text-slate-400 font-medium">{location}</p>
+                        <label className="text-xs font-bold text-[#5030E5] hover:underline cursor-pointer">
+                            Change avatar
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={e => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setImage(reader.result);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                            />
+                        </label>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                        { key: 'name', label: 'Full Name', type: 'text' },
-                        { key: 'email', label: 'Email Address', type: 'email' },
-                        { key: 'role', label: 'Job Role', type: 'text' },
-                    ].map(field => (
-                        <div key={field.key} className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{field.label}</label>
-                            <input
-                                type={field.type}
-                                value={profile[field.key]}
-                                onChange={e => setProfile(p => ({ ...p, [field.key]: e.target.value }))}
-                                className={INPUT_CLS + ' w-full'}
-                            />
-                        </div>
-                    ))}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bio</label>
-                        <textarea
-                            value={profile.bio}
-                            onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
-                            placeholder="A short bio…"
-                            rows={3}
-                            className={INPUT_CLS + ' w-full resize-none'}
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            className={INPUT_CLS + ' w-full'}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</label>
+                        <input
+                            type="text"
+                            value={location}
+                            onChange={e => setLocation(e.target.value)}
+                            className={INPUT_CLS + ' w-full'}
                         />
                     </div>
                 </div>

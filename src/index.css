@@ -135,7 +135,9 @@ body {
 
 [data-theme="dark"] .bg-slate-100,
 [data-theme="dark"] .bg-gray-100,
-[data-theme="dark"] .bg-\[\#f3f4f6\] {
+[data-theme="dark"] .bg-\[\#f3f4f6\],
+[data-theme="dark"] .bg-\[\#DBDBDB\],
+[data-theme="dark"] .bg-\[\#DBDBDB\]\/50 {
     background-color: var(--bg-surface-3) !important;
 }
 
