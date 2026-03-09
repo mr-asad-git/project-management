@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { useTheme } from './context/ThemeContext'
+
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Layout from './components/Layout'
@@ -14,13 +16,12 @@ import Members from './pages/Members'
 import Settings from './pages/Settings'
 
 const App = () => {
+  const { darkMode, toggleTheme } = useTheme()
   const [sidebar, setSideBar] = useState(true);
   const [selectedProjectID, setSelectedProjectID] = useState(1);
 
-  // Projects list lives in state so new ones can be added at runtime
   const [projects, setProjects] = useState(projectsData);
 
-  // Per-project tasks keyed by project id
   const [projectTasks, setProjectTasks] = useState(() =>
     Object.fromEntries(projectsData.map(p => [p.id, p.tasks]))
   );
@@ -32,7 +33,6 @@ const App = () => {
     tasks: projectTasks[selectedProjectID] ?? [],
   };
 
-  // Move a task and optionally promote its priority when landing in Completed
   const handleTaskMove = (taskId, newStatus) => {
     setProjectTasks(prev => ({
       ...prev,
@@ -47,7 +47,6 @@ const App = () => {
     }));
   };
 
-  // Delete a task from the current project
   const handleTaskDelete = (taskId) => {
     setProjectTasks(prev => ({
       ...prev,
@@ -55,7 +54,6 @@ const App = () => {
     }));
   };
 
-  // Add a new task to a specific column in the current project
   const handleTaskAdd = (status, { title, text = '', priority, image = null }) => {
     const newTask = {
       id: Date.now(),
@@ -73,32 +71,35 @@ const App = () => {
     }));
   };
 
-  // Update an existing task
   const handleTaskUpdate = (taskId, updatedData) => {
     setProjectTasks(prev => {
       const newState = { ...prev };
       for (const projectId in newState) {
-        newState[projectId] = newState[projectId].map(t =>
-          t.id === taskId ? { ...t, ...updatedData } : t
-        );
+        newState[projectId] = newState[projectId].map(t => {
+          if (t.id === taskId) {
+            let nextStatus = updatedData.status !== undefined ? updatedData.status : t.status;
+            if (updatedData.priority === 'Completed' && nextStatus !== 'completed') {
+              nextStatus = 'completed';
+            }
+            return { ...t, ...updatedData, status: nextStatus };
+          }
+          return t;
+        });
       }
       return newState;
     });
   };
 
-  // Edit project name/status
   const handleEditProject = (id, { name, status }) => {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, name, status } : p))
   }
 
-  // Delete a project
   const handleDeleteProject = (id) => {
     setProjects(prev => prev.filter(p => p.id !== id))
     setProjectTasks(prev => { const next = { ...prev }; delete next[id]; return next })
     if (selectedProjectID === id) setSelectedProjectID(projects[0]?.id ?? null)
   }
 
-  // Add a brand-new project from the Sidebar modal
   const handleAddProject = ({ name, status }) => {
     const newId = Date.now();
     const newProject = { id: newId, name, status };
@@ -136,6 +137,33 @@ const App = () => {
           <Route path="*" element={<Error />} />
         </Routes>
       </div>
+
+      {/* ── Floating Theme Toggle ── */}
+      <button
+        onClick={toggleTheme}
+        className="theme-toggle-btn"
+        data-tooltip={darkMode ? 'Switch to Light' : 'Switch to Dark'}
+        aria-label="Toggle dark mode"
+      >
+        <div className="icon-wrap">
+          {/* Sun icon — shown in light mode */}
+          <svg className="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          {/* Moon icon — shown in dark mode */}
+          <svg className="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9B7FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </div>
+      </button>
     </div>
   )
 }

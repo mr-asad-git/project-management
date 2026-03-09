@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
+
 // ── Simple pure-SVG bar chart (no external libs) ─────────────────────────────
 const BarChart = ({ data }) => {
     const W = 600, H = 220, PAD = { top: 20, right: 20, bottom: 40, left: 40 };

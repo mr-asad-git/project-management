@@ -427,6 +427,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                 sensors={sensors}
                                 collisionDetection={closestCenter}
                                 onDragEnd={handleDragEnd}
+                                autoScroll={false}
                             >
                                 <SortableContext
                                     items={sortedProjects.map(p => p.id)}

@@ -134,6 +134,7 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
         }
 
         onTaskMove(id, targetStatus)
+        setIsDragging(false)
     }, [onTaskMove, tasks])
 
     const handleRestoreConfirm = useCallback((newPriority) => {
@@ -201,7 +202,7 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskAdd, onTaskUpdate }) => 
             {/* ── Delete Bin ── */}
             <div
                 className={`
-                    fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]
+                    fixed bottom-8 left-1/2 -translate-x-1/2 z-[1000]
                     flex flex-col items-center gap-2
                     transition-all duration-300 ease-out pointer-events-none
                     ${isDragging

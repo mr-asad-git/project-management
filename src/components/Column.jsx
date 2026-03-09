@@ -168,7 +168,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
     return (
         <div
             className={`rounded-xl p-4 transition-all duration-200 ${isOver ? 'ring-2 ring-offset-2 scale-[1.01]' : 'ring-0'}`}
-            style={{ background: isOver ? `${accent}08` : '#f3f4f6' }}
+            style={{ background: isOver ? `${accent}20` : 'var(--bg-surface-2)' }}
             onDragOver={e => { e.preventDefault(); onDragOver(); }}
             onDragLeave={onDragLeave}
             onDrop={e => { e.preventDefault(); onDrop(); }}
