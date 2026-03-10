@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import usersData from '../mui/users';
+import usersData from '../../data/users';
 
 const SAMPLE_MESSAGES = [
     {

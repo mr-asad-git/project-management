@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import users from '../mui/users'
+import users from '../../data/users'
 import edit from '/edit.svg'
 import link from '/link.svg'
 import share from '/share.svg'
 import category from '/category.svg'
-import Board from '../components/Board'
+import Board from '../board/Board'
 
 const STATUS_OPTIONS = [
     { value: 'todo', label: 'To Do', color: '#5030E5' },

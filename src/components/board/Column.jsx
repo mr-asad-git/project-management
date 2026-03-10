@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import TaskCard from '../components/TaskCard'
+import TaskCard from './TaskCard'
 
 const ACCENT = {
     'On Hold': '#D87272',

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import users from '../mui/users'
+import { useAuth } from '../../context/AuthContext'
+import users from '../../data/users'
 
 const NAV_LABELS = {
     '/': 'Home',
@@ -63,9 +64,11 @@ const Highlight = ({ text, query }) => {
 }
 
 /* ── Main Header component ────────────────────────────────────────── */
-const Header = ({ projects = [], projectTasks = {}, user, setUser }) => {
+const Header = ({ projects = [], projectTasks = {} }) => {
     const location = useLocation()
     const navigate = useNavigate()
+    const { currentUser, logout } = useAuth()
+    const user = currentUser || {} // Fallback safety
     const [search, setSearch] = useState('')
     const [searchFocused, setSearchFocused] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
@@ -463,7 +466,10 @@ const Header = ({ projects = [], projectTasks = {}, user, setUser }) => {
                                 </button>
                             ))}
                             <div className="h-[1px] bg-[#DBDBDB]/60 mx-3" />
-                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#D8727D] hover:bg-[#D8727D]/5 transition-colors">
+                            <button
+                                onClick={() => { setProfileOpen(false); logout(); navigate('/login') }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#D8727D] hover:bg-[#D8727D]/5 transition-colors"
+                            >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
                                 </svg>

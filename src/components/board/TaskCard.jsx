@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import users from '../mui/users'
+import users from '../../data/users'
 import message from '/message.svg'
 import file from '/File.svg'
 

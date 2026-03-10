@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 const Toggle = ({ checked, onChange }) => (
     <button
@@ -36,11 +37,13 @@ const Field = ({ label, sublabel, children }) => (
 
 const INPUT_CLS = "px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all bg-slate-50 w-64";
 
-const Settings = ({ user, setUser }) => {
-    // Local state for the form inputs, initialized from the global 'user' prop
-    const [name, setName] = useState(user.name);
-    const [location, setLocation] = useState(user.location);
-    const [image, setImage] = useState(user.image);
+const Settings = () => {
+    const { currentUser, updateUser } = useAuth();
+
+    // Local state for the form inputs, initialized from auth context
+    const [name, setName] = useState(currentUser?.name ?? '');
+    const [location, setLocation] = useState(currentUser?.location ?? '');
+    const [image, setImage] = useState(currentUser?.image ?? '/users/u2.svg');
 
     // Internal UI states
     const [notifs, setNotifs] = useState({ email: true, push: false, taskAssigned: true, taskCompleted: true, mentions: false, weekly: true });
@@ -48,14 +51,9 @@ const Settings = ({ user, setUser }) => {
     const [saved, setSaved] = useState(false);
 
     const save = () => {
-        // Update the global user state with only changed data
-        setUser(prev => ({
-            ...prev,
-            name: name,
-            location: location,
-            image: image
-        }));
-
+        if (updateUser) {
+            updateUser({ name, location, image });
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
     };

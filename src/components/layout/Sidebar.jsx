@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import {
     DndContext,
     closestCenter,
@@ -234,6 +235,8 @@ const DeleteModal = ({ projectName, onConfirm, onClose }) => (
 const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProjectID, projects, onAddProject, onEditProject, onDeleteProject, onReorderProjects }) => {
     const location = useLocation()
     const navigate = useNavigate()
+    const { currentUser } = useAuth()
+    const isAdmin = currentUser?.role === 'admin'
 
     const [showAddModal, setShowAddModal] = useState(false)
     const [editProject, setEditProject] = useState(null)
@@ -253,13 +256,31 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
         return () => document.removeEventListener('mousedown', handler)
     }, [])
 
-    const navItems = [
-        { icon: '/navIcons/category.svg', label: 'Home', path: '/' },
-        { icon: '/navIcons/message.svg', label: 'Messages', path: '/messages' },
-        { icon: '/navIcons/task-square.svg', label: 'Tasks', path: '/tasks' },
-        { icon: '/navIcons/users.svg', label: 'Members', path: '/members' },
-        { icon: '/navIcons/settings.svg', label: 'Settings', path: '/settings' },
-    ]
+    // Role-based nav
+    const isManager = currentUser?.role === 'manager'
+    const navItems = isAdmin
+        ? [
+            { icon: '/navIcons/category.svg', label: 'Dashboard', path: '/' },
+            { icon: '/navIcons/task-square.svg', label: 'Tasks', path: '/tasks' },
+            { icon: '/navIcons/users.svg', label: 'Members', path: '/members' },
+            { icon: '/navIcons/settings.svg', label: 'Settings', path: '/settings' },
+            { icon: '/navIcons/shield.svg', label: 'Admin Panel', path: '/admin' },
+        ]
+        : isManager
+            ? [
+                { icon: '/navIcons/category.svg', label: 'Dashboard', path: '/' },
+                { icon: '/navIcons/task-square.svg', label: 'Tasks', path: '/tasks' },
+                { icon: '/navIcons/message.svg', label: 'Messages', path: '/messages' },
+                { icon: '/navIcons/users.svg', label: 'Members', path: '/members' },
+                { icon: '/navIcons/settings.svg', label: 'Settings', path: '/settings' },
+                { icon: '/navIcons/briefcase.svg', label: 'Manager Panel', path: '/manager' },
+            ]
+            : [
+                { icon: '/navIcons/category.svg', label: 'Dashboard', path: '/' },
+                { icon: '/navIcons/task-square.svg', label: 'Tasks', path: '/tasks' },
+                { icon: '/navIcons/message.svg', label: 'Messages', path: '/messages' },
+                { icon: '/navIcons/settings.svg', label: 'Settings', path: '/settings' },
+            ]
 
     const handleDelete = () => {
         const id = deleteProject.id

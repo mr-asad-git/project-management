@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import usersData from '../mui/users';
-import projectsData from '../mui/projects';
+import usersData from '../../data/users';
+import projectsData from '../../data/projects';
 
 const ROLES = ['Project Lead', 'UI Designer', 'Developer', 'QA Engineer', 'Product Manager'];
 const COLORS = ['#5030E5', '#FFA500', '#7AC555', '#D87272', '#60a5fa'];
