@@ -384,7 +384,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                 <div className="relative" ref={sortFilterRef}>
                                     <button
                                         onClick={() => setShowProjectSort(!showProjectSort)}
-                                        className="hover:bg-[#5030E5]/10 p-1.5 rounded-md transition-colors flex-shrink-0"
+                                        className="hover:bg-[#5030E5]/10 p-1.5 rounded-md transition-colors flex-shrink-0 cursor-pointer"
                                         title="Filter Projects"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#787486] group-hover:text-[#5030E5] transition-colors">
@@ -413,7 +413,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                 </div>
                                 <button
                                     onClick={() => setShowAddModal(true)}
-                                    className="bg-[rgba(80,48,229,0.1)] hover:bg-[#5030E5] text-[#5030E5] hover:text-white rounded-md transition-colors flex-shrink-0 flex items-center justify-center p-0 w-[28px] h-[28px]"
+                                    className="bg-[rgba(80,48,229,0.1)] hover:bg-[#5030E5] text-[#5030E5] hover:text-white rounded-md transition-colors flex-shrink-0 flex items-center justify-center p-0 w-[28px] h-[28px] cursor-pointer"
                                     title="Add project"
                                 >
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">

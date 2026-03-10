@@ -56,13 +56,14 @@ const DonutChart = ({ segments, size = 120 }) => {
     const r = 44, cx = size / 2, cy = size / 2, strokeW = 14;
     const circumference = 2 * Math.PI * r;
     let offset = 0;
-    const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
+    const actualTotal = segments.reduce((s, seg) => s + seg.value, 0);
+    const mathTotal = actualTotal || 1;
 
     return (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
             <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth={strokeW} />
             {segments.map((seg, i) => {
-                const dash = (seg.value / total) * circumference;
+                const dash = (seg.value / mathTotal) * circumference;
                 const el = (
                     <circle
                         key={i}
@@ -81,7 +82,7 @@ const DonutChart = ({ segments, size = 120 }) => {
                 return el;
             })}
             <text x={cx} y={cy + 5} textAnchor="middle" fontSize="16" fontWeight="800" fill="currentColor" className="text-[#0D062D]">
-                {total}
+                {actualTotal}
             </text>
             <text x={cx} y={cy + 18} textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="600" letterSpacing="1">
                 TOTAL
@@ -133,7 +134,7 @@ const Home = ({ projectTasks, projects }) => {
         return Object.values(projectTasks).flat();
     }, [projectTasks]);
 
-    const total = allTasks.length || 1;
+    const total = allTasks.length;
 
     const stats = useMemo(() => ({
         todo: { count: allTasks.filter(t => t.status === 'todo').length },
@@ -142,7 +143,7 @@ const Home = ({ projectTasks, projects }) => {
         onHold: { count: allTasks.filter(t => t.status === 'onHold').length },
     }), [allTasks]);
 
-    const pct = (n) => Math.round((n / total) * 100);
+    const pct = (n) => total === 0 ? 0 : Math.round((n / total) * 100);
 
     // Bar-chart data
     const statusBars = [
