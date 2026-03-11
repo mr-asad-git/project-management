@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import users from '../../data/users'
 import UserAvatar from '../ui/UserAvatar'
 
 const NAV_LABELS = {
@@ -68,7 +67,7 @@ const Highlight = ({ text, query }) => {
 const Header = ({ projects = [], projectTasks = {} }) => {
     const location = useLocation()
     const navigate = useNavigate()
-    const { currentUser, logout } = useAuth()
+    const { currentUser, logout, users } = useAuth()
     const user = currentUser || {} // Fallback safety
     const [search, setSearch] = useState('')
     const [searchFocused, setSearchFocused] = useState(false)
@@ -158,7 +157,7 @@ const Header = ({ projects = [], projectTasks = {} }) => {
         setActiveIndex(-1)
         if (type === 'task') navigate(`/project/${data.projectId}`)
         else if (type === 'project') navigate(`/project/${data.id}`)
-        else if (type === 'member') navigate('/members')
+        else if (type === 'member') navigate('/members', { state: { memberId: data.id } })
     }
 
     /* ── Keyboard navigation ── */

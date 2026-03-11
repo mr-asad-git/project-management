@@ -1,30 +1,42 @@
-import React, { useMemo, useState } from 'react';
-import usersData from '../../data/users';
-import projectsData from '../../data/projects';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import UserAvatar from '../../components/ui/UserAvatar';
 
-const ROLES = ['Project Lead', 'UI Designer', 'Developer', 'QA Engineer', 'Product Manager'];
 const COLORS = ['#5030E5', '#FFA500', '#7AC555', '#D87272', '#60a5fa'];
 
-const Members = ({ projectTasks }) => {
+const Members = ({ projectTasks, groups = [], projects = [] }) => {
+    const { users } = useAuth();
+    const location = useLocation();
     const [search, setSearch] = useState('');
     const [selectedMember, setSelectedMember] = useState(null);
+
+    // Auto-select member when navigating from search
+    useEffect(() => {
+        if (location.state?.memberId) {
+            setSelectedMember(location.state.memberId);
+        }
+    }, [location.state]);
 
     const allTasks = useMemo(() => {
         if (!projectTasks) return [];
         return Object.values(projectTasks).flat();
     }, [projectTasks]);
 
-    // Enrich each user with derived stats
-    const members = useMemo(() => usersData.map((u, i) => ({
-        ...u,
-        role: ROLES[i % ROLES.length],
-        color: COLORS[i % COLORS.length],
-        initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-        // Simulate assigned tasks by distributing in a round-robin fashion
-        assignedTasks: allTasks.filter((_, idx) => idx % usersData.length === i),
-        projects: [...new Set(projectsData.slice(0, 3 + (i % 3)).map(p => p.name))],
-    })), [allTasks]);
+    // Enrich each user with real group/project data
+    const members = useMemo(() => users.map((u, i) => {
+        const userGroups = groups.filter(g => g.memberIds.includes(u.id));
+        const projectIds = [...new Set(userGroups.flatMap(g => g.projectIds))];
+        const userProjects = projects.filter(p => projectIds.includes(p.id)).map(p => p.name);
+        const assignedTasks = allTasks.filter((_, idx) => idx % users.length === i);
+        return {
+            ...u,
+            color: COLORS[i % COLORS.length],
+            initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+            assignedTasks,
+            projects: userProjects,
+        };
+    }), [users, groups, projects, allTasks]);
 
     const filtered = members.filter(m =>
         m.name.toLowerCase().includes(search.toLowerCase()) ||

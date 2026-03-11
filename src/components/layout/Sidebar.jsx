@@ -29,7 +29,7 @@ const STATUS_OPTIONS = [
 const statusColor = (s) => ({ completed: '#7AC555', inProgress: '#FFA500', onHold: '#D87272' }[s] ?? '#5030E5')
 
 /* ── Sortable Project Item ───────────────────────────────────────── */
-const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisabled, onSelect, onToggleMenu, onEdit, onDelete }) => {
+const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisabled, readOnly, onSelect, onToggleMenu, onEdit, onDelete }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: project.id,
         disabled: isDragDisabled
@@ -77,7 +77,7 @@ const SortableProjectItem = ({ project, isActive, menuOpen, sidebar, isDragDisab
                     </span>
                 </div>
 
-                {sidebar && (
+                {sidebar && !readOnly && (
                     <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleMenu(); }}
                         className={`p-1.5 rounded-md transition-all z-10 relative group-hover:bg-[#5030E5]/10 ${isActive ? 'text-[#0D062D] opacity-100' : 'text-[#787486] opacity-0 group-hover:opacity-100'}`}
@@ -258,6 +258,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
 
     // Role-based nav
     const isManager = currentUser?.role === 'manager'
+    const isClient = currentUser?.role === 'client'
     const navItems = isAdmin
         ? [
             { icon: '/navIcons/category.svg', label: 'Dashboard', path: '/' },
@@ -402,7 +403,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                 PROJECTS
                             </span>
                             <div className={`flex items-center gap-2 transition-all group ${!sidebar && 'hidden'}`}>
-                                <div className="relative" ref={sortFilterRef}>
+                                <div className="relative" ref={sortFilterRef} style={{ display: isClient ? 'none' : undefined }}>
                                     <button
                                         onClick={() => setShowProjectSort(!showProjectSort)}
                                         className="hover:bg-[#5030E5]/10 p-1.5 rounded-md transition-colors flex-shrink-0 cursor-pointer"
@@ -432,7 +433,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                         </div>
                                     )}
                                 </div>
-                                <button
+                                {!isClient && <button
                                     onClick={() => setShowAddModal(true)}
                                     className="bg-[rgba(80,48,229,0.1)] hover:bg-[#5030E5] text-[#5030E5] hover:text-white rounded-md transition-colors flex-shrink-0 flex items-center justify-center p-0 w-[28px] h-[28px] cursor-pointer"
                                     title="Add project"
@@ -441,7 +442,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                         <line x1="12" y1="5" x2="12" y2="19" />
                                         <line x1="5" y1="12" x2="19" y2="12" />
                                     </svg>
-                                </button>
+                                </button>}
                             </div>
                         </div>
 
@@ -467,6 +468,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                                                 menuOpen={menuOpen}
                                                 sidebar={sidebar}
                                                 isDragDisabled={projectSortFilter !== 'default'}
+                                                readOnly={isClient}
                                                 onSelect={(id) => { setSelectedProjectID(id); setOpenMenuId(null); }}
                                                 onToggleMenu={() => setOpenMenuId(menuOpen ? null : project.id)}
                                                 onEdit={() => { setEditProject(project); setOpenMenuId(null); }}

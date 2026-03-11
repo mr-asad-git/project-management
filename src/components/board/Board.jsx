@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react'
 import Column from './Column'
+import { useAuth } from '../../context/AuthContext'
 
 const COLUMNS = [
     { title: 'On Hold', status: 'onHold' },
@@ -194,6 +195,8 @@ const UndoToast = ({ task, countdown, onUndo, onDismiss }) => {
 
 // ── Board ──────────────────────────────────────────────────────────
 const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTaskUpdate }) => {
+    const { currentUser } = useAuth()
+    const isClient = currentUser?.role === 'client'
     const dragTaskId = useRef(null)
     const dragStatus = useRef(null)
     const [overCol, setOverCol] = useState(null)
@@ -363,8 +366,8 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTa
                 />
             )}
 
-            {/* ── Delete Bin ── */}
-            <div
+            {/* ── Delete Bin (hidden for clients) ── */}
+            {!isClient && <div
                 style={{
                     position: 'fixed',
                     bottom: '2rem',
@@ -404,7 +407,7 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTa
                         {overBin ? 'Release to delete' : 'Drop to delete'}
                     </span>
                 </div>
-            </div>
+            </div>}
         </div>
     )
 }

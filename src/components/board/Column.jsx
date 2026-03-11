@@ -15,10 +15,12 @@ const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
 const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onTaskAdd, onTaskUpdate, allTasks = [] }) => {
     const accent = ACCENT[title] ?? '#D87272'
 
+    const priorityOptions = status === 'completed' ? ['Completed'] : ['Low', 'High', 'Completed']
+
     const [showAddForm, setShowAddForm] = useState(false)
     const [newTitle, setNewTitle] = useState('')
     const [newText, setNewText] = useState('')
-    const [newPriority, setNewPriority] = useState('Low')
+    const [newPriority, setNewPriority] = useState(status === 'completed' ? 'Completed' : 'Low')
     const [imageFile, setImageFile] = useState(null)         // File object
     const [imagePreview, setImagePreview] = useState(null)   // base64 data-URL
     const [imageError, setImageError] = useState('')
@@ -64,7 +66,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
         setShowAddForm(true)
         setNewTitle('')
         setNewText('')
-        setNewPriority('Low')
+        setNewPriority(status === 'completed' ? 'Completed' : 'Low')
         setImageFile(null)
         setImagePreview(null)
         setImageError('')
@@ -228,7 +230,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
 
                         {/* Priority pills */}
                         <div className="flex gap-1.5 flex-wrap">
-                            {['Low', 'High', 'Completed'].map(p => (
+                            {priorityOptions.map(p => (
                                 <button
                                     key={p}
                                     type="button"
@@ -341,6 +343,16 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                 )
             }
 
+            {/* Empty state */}
+            {tasks.length === 0 && !showAddForm && !isOver && (
+                <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" opacity="0.3">
+                        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 12l2 2 4-4" />
+                    </svg>
+                    <p className="text-[12px] font-medium text-slate-300">No task created yet</p>
+                </div>
+            )}
+
             {/* Cards */}
             <div className="flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-180px)] scrollbar-hide min-h-0">
                 {tasks.map(task => (
@@ -383,7 +395,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[12px] font-bold text-[#787486] uppercase tracking-wide">Priority</label>
                                     <div className="flex gap-2">
-                                        {['Low', 'High', 'Completed'].map(p => (
+                                        {priorityOptions.map(p => (
                                             <button
                                                 key={p}
                                                 type="button"

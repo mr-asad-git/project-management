@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useTheme } from './context/ThemeContext'
 import { useAuth } from './context/AuthContext'
 
@@ -26,6 +26,7 @@ import ManagerPanel from './pages/manager/ManagerPanel'
 const App = () => {
   const { darkMode, toggleTheme } = useTheme()
   const { currentUser } = useAuth()
+  const location = useLocation()
 
   const [sidebar, setSideBar] = useState(true);
   const [selectedProjectID, setSelectedProjectID] = useState(1);
@@ -36,7 +37,30 @@ const App = () => {
     Object.fromEntries(projectsData.map(p => [p.id, p.tasks]))
   );
 
+  // Sync selectedProjectID from URL when navigating via search
+  useEffect(() => {
+    const match = location.pathname.match(/^\/project\/(\d+)$/)
+    if (match) {
+      const urlId = Number(match[1])
+      if (urlId !== selectedProjectID) setSelectedProjectID(urlId)
+    }
+  }, [location.pathname])
+
   const toggleSidebar = () => setSideBar(!sidebar);
+
+  // Clients only see projects assigned to their groups
+  const visibleProjects = useMemo(() => {
+    if (!currentUser || currentUser.role !== 'client') return projects
+    const userGroupIds = groups.filter(g => g.memberIds.includes(currentUser.id)).flatMap(g => g.projectIds)
+    const allowed = new Set(userGroupIds)
+    return projects.filter(p => allowed.has(p.id))
+  }, [currentUser, projects, groups])
+
+  const visibleProjectTasks = useMemo(() => {
+    if (!currentUser || currentUser.role !== 'client') return projectTasks
+    const allowed = new Set(visibleProjects.map(p => p.id))
+    return Object.fromEntries(Object.entries(projectTasks).filter(([id]) => allowed.has(Number(id))))
+  }, [currentUser, projectTasks, visibleProjects])
 
   const selectedProject = {
     ...(projects.find(p => p.id === selectedProjectID) || projects[0]),
@@ -156,19 +180,19 @@ const App = () => {
               toggleSidebar={toggleSidebar}
               selectedProjectID={selectedProjectID}
               setSelectedProjectID={setSelectedProjectID}
-              projects={projects}
+              projects={visibleProjects}
               onAddProject={handleAddProject}
               onEditProject={handleEditProject}
               onDeleteProject={handleDeleteProject}
               onReorderProjects={handleReorderProjects}
             />
             <div className="flex flex-col w-full">
-              <Header projects={projects} projectTasks={projectTasks} />
+              <Header projects={visibleProjects} projectTasks={visibleProjectTasks} />
               <Routes>
-                <Route path="/" element={<Home projectTasks={projectTasks} projects={projects} />} />
+                <Route path="/" element={<Home projectTasks={visibleProjectTasks} projects={visibleProjects} />} />
                 <Route path="/messages" element={<Messages />} />
-                <Route path="/tasks" element={<Tasks projectTasks={projectTasks} projects={projects} />} />
-                <Route path="/members" element={<Members projectTasks={projectTasks} />} />
+                <Route path="/tasks" element={<Tasks projectTasks={visibleProjectTasks} projects={visibleProjects} />} />
+                <Route path="/members" element={<Members projectTasks={visibleProjectTasks} groups={groups} projects={projects} />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/project/:projectId" element={
                   <Layout
