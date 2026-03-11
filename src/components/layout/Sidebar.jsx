@@ -399,7 +399,7 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                     <div className="flex flex-col py-4 flex-grow relative z-[80]">
                         <div className={`ProjectsHeader flex items-center ${sidebar ? 'justify-between px-7' : 'justify-center px-0'} mb-4 relative z-50`}>
                             <span className={`font-bold text-[12px] tracking-wider text-[#787486] uppercase transition-all duration-300 ${sidebar ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 absolute pointer-events-none'}`}>
-                                MY PROJECTS
+                                PROJECTS
                             </span>
                             <div className={`flex items-center gap-2 transition-all group ${!sidebar && 'hidden'}`}>
                                 <div className="relative" ref={sortFilterRef}>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import usersData from '../../data/users';
 import projectsData from '../../data/projects';
+import UserAvatar from '../../components/ui/UserAvatar';
 
 const ROLES = ['Project Lead', 'UI Designer', 'Developer', 'QA Engineer', 'Product Manager'];
 const COLORS = ['#5030E5', '#FFA500', '#7AC555', '#D87272', '#60a5fa'];
@@ -80,15 +81,11 @@ const Members = ({ projectTasks }) => {
 
                                 <div className="flex items-center gap-4 z-10">
                                     <div className="relative">
-                                        <img
-                                            src={member.image}
-                                            alt={member.name}
-                                            className="w-14 h-14 rounded-2xl object-cover border-white shadow-md"
-                                            onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                        <UserAvatar
+                                            user={member}
+                                            className="w-14 h-14 rounded-2xl border-white shadow-md"
+                                            style={{ backgroundColor: member.color, color: 'white' }}
                                         />
-                                        <div className="w-14 h-14 rounded-2xl text-white font-black text-lg items-center justify-center hidden" style={{ backgroundColor: member.color }}>
-                                            {member.initials}
-                                        </div>
                                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
                                     </div>
                                     <div>
@@ -140,9 +137,11 @@ const Members = ({ projectTasks }) => {
                     <aside className="w-80 flex-shrink-0 bg-white rounded-[28px] border border-slate-100 shadow-[0_4px_24px_rgb(0,0,0,0.05)] p-8 flex flex-col gap-6 h-fit sticky top-8">
                         <div className="flex items-start justify-between">
                             <div className="flex gap-3 items-center">
-                                <div className="w-14 h-14 rounded-2xl text-white font-black text-lg flex items-center justify-center shadow-md" style={{ backgroundColor: detail.color }}>
-                                    {detail.initials}
-                                </div>
+                                <UserAvatar
+                                    user={detail}
+                                    className="w-14 h-14 rounded-2xl shadow-md text-lg flex items-center justify-center"
+                                    style={{ backgroundColor: detail.color, color: 'white' }}
+                                />
                                 <div>
                                     <p className="font-black text-slate-900">{detail.name}</p>
                                     <p className="text-xs font-semibold mt-0.5" style={{ color: detail.color }}>{detail.role}</p>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import users from '../../data/users'
+import UserAvatar from '../ui/UserAvatar'
 import message from '/message.svg'
 import file from '/File.svg'
 
@@ -88,12 +89,10 @@ const TaskCard = ({ task, onDragStart, onDragEnd, onEdit }) => {
 
                     <div className="flex -space-x-2">
                         {users.slice(0, 3).map((user) => (
-                            <img
+                            <UserAvatar
                                 key={user.id}
-                                src={user.image}
-                                alt={user.name}
-                                title={user.name}
-                                className="h-6 w-6 rounded-full ring-2 ring-white object-cover"
+                                user={user}
+                                className="h-6 w-6 rounded-full ring-2 ring-white"
                             />
                         ))}
                     </div>

@@ -1,5 +1,7 @@
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import seedUsers from "../data/users"
+
+const SESSION_DURATION = 10 * 60 * 60 * 1000; // 10 hours in milliseconds
 
 const AuthContext = createContext()
 
@@ -10,16 +12,35 @@ export const AuthProvider = ({ children }) => {
 
     const [currentUser, setCurrentUser] = useState(() => {
         const saved = localStorage.getItem("user")
-        return saved ? JSON.parse(saved) : null
+        if (!saved) return null;
+        const parsed = JSON.parse(saved);
+        if (parsed.loginTimestamp && Date.now() - parsed.loginTimestamp > SESSION_DURATION) {
+            localStorage.removeItem("user");
+            return null;
+        }
+        return parsed;
     })
+
+    /* ── Session expiry check ── */
+    useEffect(() => {
+        if (!currentUser) return;
+        const checkSession = () => {
+            if (currentUser.loginTimestamp && Date.now() - currentUser.loginTimestamp > SESSION_DURATION) {
+                logout();
+            }
+        };
+        const interval = setInterval(checkSession, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, [currentUser]);
 
     /* ── helpers ── */
     const syncCurrent = (updatedUsers) => {
         if (!currentUser) return
         const refreshed = updatedUsers.find(u => u.id === currentUser.id)
         if (refreshed) {
-            setCurrentUser(refreshed)
-            localStorage.setItem("user", JSON.stringify(refreshed))
+            const nextCurrent = { ...refreshed, loginTimestamp: currentUser.loginTimestamp };
+            setCurrentUser(nextCurrent)
+            localStorage.setItem("user", JSON.stringify(nextCurrent))
         }
     }
 
@@ -29,8 +50,9 @@ export const AuthProvider = ({ children }) => {
         if (!user) return { success: false, message: "Invalid email or password." }
         if (user.blocked) return { success: false, message: "Your account has been blocked. Please contact the administrator." }
 
-        setCurrentUser(user)
-        localStorage.setItem("user", JSON.stringify(user))
+        const loginUser = { ...user, loginTimestamp: Date.now() };
+        setCurrentUser(loginUser)
+        localStorage.setItem("user", JSON.stringify(loginUser))
         return { success: true }
     }
 
@@ -46,14 +68,16 @@ export const AuthProvider = ({ children }) => {
             password,
             role: "client",
             location: "",
-            image: "/users/u2.svg",
+            image: null,
             blocked: false,
         }
 
         const next = [...users, newUser]
         setUsers(next)
-        setCurrentUser(newUser)
-        localStorage.setItem("user", JSON.stringify(newUser))
+        
+        const loginUser = { ...newUser, loginTimestamp: Date.now() };
+        setCurrentUser(loginUser)
+        localStorage.setItem("user", JSON.stringify(loginUser))
         return { success: true }
     }
 
@@ -86,7 +110,7 @@ export const AuthProvider = ({ children }) => {
             password,
             role,
             location,
-            image: "/users/u2.svg",
+            image: null,
             blocked: false,
         }
         setUsers(prev => [...prev, newUser])

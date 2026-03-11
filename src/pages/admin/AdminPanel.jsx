@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import UserAvatar from '../../components/ui/UserAvatar'
 
 /* ── tiny reusable helpers ──────────────────────────────────────── */
 
@@ -318,7 +319,7 @@ const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3 min-w-[160px]">
                     <div className="relative flex-shrink-0">
-                        <img src={user.image} alt={user.name} className="w-9 h-9 rounded-xl object-cover bg-slate-100" onError={e => { e.target.onerror = null; e.target.src = '/users/u2.svg' }} />
+                        <UserAvatar user={user} className="w-9 h-9 rounded-xl border border-slate-100" />
                         {isSelf && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#5030E5] rounded-full border-2 border-white" title="You" />}
                     </div>
                     <div className="min-w-0 flex-1">

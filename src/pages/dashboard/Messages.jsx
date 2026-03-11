@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import usersData from '../../data/users';
+import UserAvatar from '../../components/ui/UserAvatar';
 
 const SAMPLE_MESSAGES = [
     {
@@ -114,15 +115,7 @@ const Messages = () => {
                                     className={`w-full text-left px-5 py-4 flex items-start gap-3 transition-all duration-200 ${isActive ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
                                 >
                                     <div className="relative flex-shrink-0">
-                                        <img
-                                            src={user?.image}
-                                            alt={user?.name}
-                                            className="w-11 h-11 rounded-2xl object-cover border-2 border-white shadow-sm"
-                                            onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                                        />
-                                        <div className="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-600 font-black text-sm items-center justify-center hidden">
-                                            {initials}
-                                        </div>
+                                        <UserAvatar user={user} className="w-11 h-11 rounded-2xl border-2 border-white shadow-sm" />
                                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -147,15 +140,7 @@ const Messages = () => {
                     {activeUser && (
                         <div className="px-7 py-5 border-b border-slate-100 flex items-center gap-4">
                             <div className="relative">
-                                <img
-                                    src={activeUser.image}
-                                    alt={activeUser.name}
-                                    className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
-                                    onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                                />
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 font-black text-sm items-center justify-center hidden shadow-sm">
-                                    {activeUser.name.split(' ').map(n => n[0]).join('')}
-                                </div>
+                                <UserAvatar user={activeUser} className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm" />
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white" />
                             </div>
                             <div>
@@ -170,10 +155,9 @@ const Messages = () => {
                         {active?.thread.map((msg, i) => (
                             <div key={i} className={`flex ${msg.from === 'me' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.from === 'them' && (
-                                    <img
-                                        src={activeUser?.image}
-                                        alt=""
-                                        className="w-8 h-8 rounded-xl object-cover mr-3 mt-auto border border-white shadow-sm flex-shrink-0"
+                                    <UserAvatar
+                                        user={activeUser}
+                                        className="w-8 h-8 rounded-xl mr-3 mt-auto border border-white shadow-sm flex-shrink-0"
                                     />
                                 )}
                                 <div className="max-w-[65%]">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import UserAvatar from '../../components/ui/UserAvatar';
 
 const Toggle = ({ checked, onChange }) => (
     <button
@@ -43,7 +44,7 @@ const Settings = () => {
     // Local state for the form inputs, initialized from auth context
     const [name, setName] = useState(currentUser?.name ?? '');
     const [location, setLocation] = useState(currentUser?.location ?? '');
-    const [image, setImage] = useState(currentUser?.image ?? '/users/u2.svg');
+    const [image, setImage] = useState(currentUser?.image ?? '');
 
     // Internal UI states
     const [notifs, setNotifs] = useState({ email: true, push: false, taskAssigned: true, taskCompleted: true, mentions: false, weekly: true });
@@ -94,10 +95,9 @@ const Settings = () => {
             >
                 {/* Avatar */}
                 <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
-                    <img
-                        src={image}
-                        alt="Profile"
-                        className="w-20 h-20 rounded-[24px] object-cover ring-indigo-50"
+                    <UserAvatar
+                        user={{ name, image }}
+                        className="w-20 h-20 rounded-[24px] ring-indigo-50 text-2xl shadow-sm"
                     />
                     <div className="flex flex-col gap-2">
                         <p className="font-black text-slate-900">{name}</p>

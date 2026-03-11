@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import users from '../../data/users'
+import UserAvatar from '../ui/UserAvatar'
 import edit from '/edit.svg'
 import link from '/link.svg'
 import share from '/share.svg'
@@ -130,7 +131,7 @@ const Layout = ({ selectedProject, onTaskMove, onTaskDelete, onTaskRestore, onTa
                     <p className='text-lg font-[600] text-[#5030E5]'>Invite</p>
                     <div className="userImage flex">
                         {users.map((user) => (
-                            <img key={user.id} src={user.image} alt={user.name} className='-mr-[10px]' />
+                            <UserAvatar key={user.id} user={user} className='w-9 h-9 rounded-full border-2 border-white -mr-[10px]' /> 
                         ))}
                     </div>
                 </div>

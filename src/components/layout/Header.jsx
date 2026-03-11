@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import users from '../../data/users'
+import UserAvatar from '../ui/UserAvatar'
 
 const NAV_LABELS = {
     '/': 'Home',
@@ -366,7 +367,7 @@ const Header = ({ projects = [], projectTasks = {} }) => {
                                                     onMouseEnter={() => setActiveIndex(flatIdx)}
                                                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isActive ? 'bg-[#5030E5]/5' : 'hover:bg-gray-50'}`}
                                                 >
-                                                    <img src={member.image} alt={member.name} className="h-7 w-7 rounded-xl object-cover ring-2 ring-[#5030E5]/15 flex-shrink-0" />
+                                                    <UserAvatar user={member} className="h-7 w-7 rounded-xl ring-2 ring-[#5030E5]/15 flex-shrink-0" />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-[13px] font-semibold text-[#0D062D] truncate">
                                                             <Highlight text={member.name} query={search.trim()} />
@@ -428,7 +429,7 @@ const Header = ({ projects = [], projectTasks = {} }) => {
                         className={`flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-xl transition-all duration-150 ${profileOpen ? 'bg-[#5030E5]/8' : 'hover:bg-gray-50'}`}
                     >
                         <div className="relative">
-                            <img src={user.image} alt={user.name} className="h-8 w-8 rounded-xl object-cover ring-2 ring-[#5030E5]/20" />
+                            <UserAvatar user={user} className="h-8 w-8 rounded-xl ring-2 ring-[#5030E5]/20" />
                             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#7AC555] rounded-full ring-2 ring-white" />
                         </div>
                         <div className="text-left hidden md:block">
@@ -445,7 +446,7 @@ const Header = ({ projects = [], projectTasks = {} }) => {
                         <div className="absolute right-0 top-full mt-2 w-[220px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-[#DBDBDB]/60 overflow-hidden z-50">
                             <div className="p-4 border-b border-[#DBDBDB]/60 bg-gradient-to-br from-[#5030E5]/5 to-transparent">
                                 <div className="flex items-center gap-3">
-                                    <img src={user.image} alt={user.name} className="h-10 w-10 rounded-xl object-cover ring-2 ring-[#5030E5]/20" />
+                                    <UserAvatar user={user} className="h-10 w-10 rounded-xl ring-2 ring-[#5030E5]/20" />
                                     <div>
                                         <p className="text-[14px] font-bold text-[#0D062D]">{user.name}</p>
                                         <p className="text-[12px] text-[#787486]">{user.location}</p>

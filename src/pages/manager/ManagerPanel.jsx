@@ -1,16 +1,12 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import UserAvatar from '../../components/ui/UserAvatar'
 
 /* ── helpers ────────────────────────────────────────────────────── */
 const ROLE_COLORS = { admin: '#5030E5', manager: '#3b82f6', client: '#64748b' }
 
 const Avatar = ({ src, name, size = 8 }) => (
-    <img
-        src={src}
-        alt={name}
-        className={`w-${size} h-${size} rounded-xl object-cover bg-slate-100 flex-shrink-0`}
-        onError={e => { e.target.onerror = null; e.target.src = '/users/u2.svg' }}
-    />
+    <UserAvatar user={{ name, image: src }} className={`w-${size} h-${size} rounded-xl bg-slate-100 flex-shrink-0 text-xs border border-white`} />
 )
 
 const sectionCls = "bg-white rounded-2xl border border-slate-100 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden"
