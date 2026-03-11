@@ -23,8 +23,8 @@ const Members = ({ projectTasks, groups = [], projects = [] }) => {
         return Object.values(projectTasks).flat();
     }, [projectTasks]);
 
-    // Enrich each user with real group/project data
-    const members = useMemo(() => users.map((u, i) => {
+    // Enrich each user with real group/project data — exclude admins
+    const members = useMemo(() => users.filter(u => u.role !== 'admin').map((u, i) => {
         const userGroups = groups.filter(g => g.memberIds.includes(u.id));
         const projectIds = [...new Set(userGroups.flatMap(g => g.projectIds))];
         const userProjects = projects.filter(p => projectIds.includes(p.id)).map(p => p.name);
@@ -102,7 +102,11 @@ const Members = ({ projectTasks, groups = [], projects = [] }) => {
                                     </div>
                                     <div>
                                         <p className="font-black text-slate-900 text-base leading-tight">{member.name}</p>
-                                        <p className="text-xs font-semibold mt-0.5" style={{ color: member.color }}>{member.role}</p>
+                                        <p className="text-xs font-semibold mt-0.5" style={{ color: member.color }}>
+                                            {member.role === 'client'
+                                                ? (member.customId || 'Client')
+                                                : member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                                        </p>
                                         <p className="text-xs text-slate-400 font-medium mt-0.5">{member.location}</p>
                                     </div>
                                 </div>
@@ -156,7 +160,11 @@ const Members = ({ projectTasks, groups = [], projects = [] }) => {
                                 />
                                 <div>
                                     <p className="font-black text-slate-900">{detail.name}</p>
-                                    <p className="text-xs font-semibold mt-0.5" style={{ color: detail.color }}>{detail.role}</p>
+                                    <p className="text-xs font-semibold mt-0.5" style={{ color: detail.color }}>
+                                        {detail.role === 'client'
+                                            ? (detail.customId || 'Client')
+                                            : detail.role.charAt(0).toUpperCase() + detail.role.slice(1)}
+                                    </p>
                                 </div>
                             </div>
                             <button onClick={() => setSelectedMember(null)} className="text-slate-400 hover:text-slate-700 transition-colors p-1">

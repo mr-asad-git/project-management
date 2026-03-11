@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'd:\\\\Workspace\\\\Projects\\\\Project Management/src' -type f \\\\\\(-name *.jsx -o -name *.js -o -name *.json \\\\\\))",
+      "Bash(npm install:*)"
+    ]
+  }
+}

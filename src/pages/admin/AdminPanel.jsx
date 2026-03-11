@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import UserAvatar from '../../components/ui/UserAvatar'
 
@@ -65,7 +66,7 @@ const InlineEdit = ({ value, onSave, type = 'text', disabled = false }) => {
 
 /* ── Add-User Modal ───────────────────────────────────────────── */
 const AddUserModal = ({ onClose, onAdd }) => {
-    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'client', location: '' })
+    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'client', location: '', customId: '' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
@@ -82,7 +83,12 @@ const AddUserModal = ({ onClose, onAdd }) => {
         await new Promise(r => setTimeout(r, 300))
         const result = onAdd(form)
         setLoading(false)
-        if (result.success) { onClose() } else { setError(result.message) }
+        if (result.success) {
+            toast.success(`User "${form.name}" created successfully!`)
+            onClose()
+        } else {
+            setError(result.message)
+        }
     }
 
     const inputCls = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20 transition-all bg-slate-50 text-slate-700"
@@ -119,12 +125,25 @@ const AddUserModal = ({ onClose, onAdd }) => {
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password *</label>
                         <input name="password" type="password" placeholder="Min. 8 characters" value={form.password} onChange={handleChange} className={inputCls} />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Role</label>
-                        <select name="role" value={form.role} onChange={handleChange} className={inputCls + ' cursor-pointer'}>
-                            <option value="client">Client</option>
-                            <option value="manager">Manager</option>
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Role</label>
+                            <select name="role" value={form.role} onChange={handleChange} className={inputCls + ' cursor-pointer'}>
+                                <option value="client">Client</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Custom ID <span className="normal-case text-slate-300">(optional)</span></label>
+                            <input
+                                name="customId"
+                                type="text"
+                                placeholder={form.role === 'manager' ? 'e.g. MGR-001' : 'e.g. CLT-001'}
+                                value={form.customId}
+                                onChange={handleChange}
+                                className={inputCls}
+                            />
+                        </div>
                     </div>
 
                     {error && (
@@ -184,16 +203,19 @@ const AdminPanel = () => {
     const [search, setSearch] = useState('')
     const [roleFilter, setRoleFilter] = useState('all')
 
-    const filtered = users.filter(u => {
+    // Exclude admin from the table — admin manages others, not itself
+    const nonAdminUsers = users.filter(u => u.role !== 'admin')
+
+    const filtered = nonAdminUsers.filter(u => {
         const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
-            u.email.toLowerCase().includes(search.toLowerCase())
+            u.email.toLowerCase().includes(search.toLowerCase()) ||
+            (u.customId || '').toLowerCase().includes(search.toLowerCase())
         const matchRole = roleFilter === 'all' || u.role === roleFilter
         return matchSearch && matchRole
     })
 
     const stats = {
-        total: users.length,
-        admins: users.filter(u => u.role === 'admin').length,
+        total: nonAdminUsers.length,
         managers: users.filter(u => u.role === 'manager').length,
         clients: users.filter(u => u.role === 'client').length,
         blocked: users.filter(u => u.blocked).length,
@@ -232,14 +254,14 @@ const AdminPanel = () => {
                     <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                     <input
                         type="text"
-                        placeholder="Search by name or email…"
+                        placeholder="Search by name, email or ID…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5030E5] focus:ring-2 focus:ring-[#5030E5]/20 transition-all bg-white text-slate-700"
                     />
                 </div>
                 <div className="flex gap-2">
-                    {['all', 'admin', 'manager', 'client'].map(r => (
+                    {['all', 'manager', 'client'].map(r => (
                         <button
                             key={r}
                             onClick={() => setRoleFilter(r)}
@@ -261,6 +283,7 @@ const AdminPanel = () => {
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/70">
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">User</th>
+                                <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">ID</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Email</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Password</th>
@@ -272,7 +295,7 @@ const AdminPanel = () => {
                         <tbody className="divide-y divide-slate-50">
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-16 text-slate-400 font-medium">
+                                    <td colSpan="8" className="text-center py-16 text-slate-400 font-medium">
                                         <svg className="mx-auto mb-3 text-slate-200" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                                         No users found
                                     </td>
@@ -292,7 +315,7 @@ const AdminPanel = () => {
                     </table>
                 </div>
                 <div className="px-6 py-3 border-t border-slate-50 bg-slate-50/40 text-xs text-slate-400 font-medium">
-                    Showing {filtered.length} of {users.length} users · Click any cell to edit inline
+                    Showing {filtered.length} of {nonAdminUsers.length} users · Click any cell to edit inline
                 </div>
             </div>
 
@@ -311,8 +334,6 @@ const AdminPanel = () => {
 
 /* ── User Row ─────────────────────────────────────────────────── */
 const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
-    const isAdmin = user.role === 'admin'
-
     return (
         <tr className={`group transition-colors hover:bg-slate-50/80 ${user.blocked ? 'opacity-60' : ''}`}>
             {/* Avatar + Name */}
@@ -323,53 +344,53 @@ const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
                         {isSelf && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#5030E5] rounded-full border-2 border-white" title="You" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <InlineEdit value={user.name} onSave={v => onEdit('name', v)} disabled={isAdmin && !isSelf} />
+                        <InlineEdit value={user.name} onSave={v => onEdit('name', v)} />
                         {isSelf && <span className="text-[10px] text-[#5030E5] font-bold">You</span>}
                     </div>
                 </div>
             </td>
 
+            {/* Custom ID */}
+            <td className="px-6 py-4 min-w-[120px]">
+                <InlineEdit
+                    value={user.customId || ''}
+                    onSave={v => onEdit('customId', v)}
+                />
+            </td>
+
             {/* Email */}
             <td className="px-6 py-4 min-w-[200px]">
-                <InlineEdit value={user.email} onSave={v => onEdit('email', v)} type="email" disabled={isAdmin} />
+                <InlineEdit value={user.email} onSave={v => onEdit('email', v)} type="email" />
             </td>
 
             {/* Location */}
             <td className="px-6 py-4 min-w-[140px]">
-                <InlineEdit value={user.location} onSave={v => onEdit('location', v)} disabled={isAdmin && !isSelf} />
+                <InlineEdit value={user.location} onSave={v => onEdit('location', v)} />
             </td>
 
-            {/* Password (masked) */}
+            {/* Password */}
             <td className="px-6 py-4 min-w-[140px]">
-                {isAdmin
-                    ? <span className="text-sm text-slate-300 select-none">••••••••</span>
-                    : <InlineEdit value={user.password} onSave={v => onEdit('password', v)} type="password" />
-                }
+                <InlineEdit value={user.password} onSave={v => onEdit('password', v)} type="password" />
             </td>
 
             {/* Role */}
             <td className="px-6 py-4">
-                {isAdmin
-                    ? <RoleBadge role="admin" />
-                    : (
-                        <div className="relative group/role">
-                            <RoleBadge role={user.role} />
-                            <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-50 hidden group-hover/role:block w-[130px]">
-                                {['client', 'manager'].map(r => (
-                                    <button
-                                        key={r}
-                                        onClick={() => onPromote(r)}
-                                        className={`w-full text-left flex items-center gap-2 px-4 py-2.5 text-xs font-bold capitalize transition-colors ${user.role === r ? 'bg-[#5030E5]/10 text-[#5030E5]' : 'text-slate-600 hover:bg-slate-50'}`}
-                                    >
-                                        <span className={`w-2 h-2 rounded-full ${r === 'manager' ? 'bg-blue-500' : 'bg-slate-400'}`} />
-                                        {r}
-                                        {user.role === r && <svg className="ml-auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )
-                }
+                <div className="relative group/role">
+                    <RoleBadge role={user.role} />
+                    <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-50 hidden group-hover/role:block w-[130px]">
+                        {['client', 'manager'].map(r => (
+                            <button
+                                key={r}
+                                onClick={() => onPromote(r)}
+                                className={`w-full text-left flex items-center gap-2 px-4 py-2.5 text-xs font-bold capitalize transition-colors ${user.role === r ? 'bg-[#5030E5]/10 text-[#5030E5]' : 'text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${r === 'manager' ? 'bg-blue-500' : 'bg-slate-400'}`} />
+                                {r}
+                                {user.role === r && <svg className="ml-auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </td>
 
             {/* Status */}
@@ -381,30 +402,26 @@ const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
             <td className="px-6 py-4">
                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {/* Block / Unblock */}
-                    {!isAdmin && (
-                        <button
-                            onClick={onBlock}
-                            title={user.blocked ? 'Grant Access' : 'Block Access'}
-                            className={`p-2 rounded-lg transition-all ${user.blocked ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}`}
-                        >
-                            {user.blocked ? (
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" /><path d="M9 12l2 2 4-4" /></svg>
-                            ) : (
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
-                            )}
-                        </button>
-                    )}
+                    <button
+                        onClick={onBlock}
+                        title={user.blocked ? 'Grant Access' : 'Block Access'}
+                        className={`p-2 rounded-lg transition-all ${user.blocked ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}`}
+                    >
+                        {user.blocked ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" /><path d="M9 12l2 2 4-4" /></svg>
+                        ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
+                        )}
+                    </button>
 
                     {/* Delete */}
-                    {!isAdmin && (
-                        <button
-                            onClick={onDelete}
-                            title="Delete User"
-                            className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all"
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
-                        </button>
-                    )}
+                    <button
+                        onClick={onDelete}
+                        title="Delete User"
+                        className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                    </button>
                 </div>
             </td>
         </tr>

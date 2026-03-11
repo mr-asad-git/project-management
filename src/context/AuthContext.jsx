@@ -1,56 +1,71 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import seedUsers from "../data/users"
 
-const SESSION_DURATION = 10 * 60 * 60 * 1000; // 10 hours in milliseconds
+const SESSION_DURATION          = 10 * 60 * 60 * 1000        // 10 hours
+const SESSION_DURATION_REMEMBER = 30 * 24 * 60 * 60 * 1000   // 30 days
+const USERS_KEY = 'pm_users'
 
 const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
 
-    // Full user list — admins can read and mutate this in real-time
-    const [users, setUsers] = useState(seedUsers)
+    /* ── Users list — load from localStorage, fall back to seed ── */
+    const [users, setUsers] = useState(() => {
+        try {
+            const saved = localStorage.getItem(USERS_KEY)
+            if (saved) return JSON.parse(saved)
+        } catch {}
+        return seedUsers
+    })
 
     const [currentUser, setCurrentUser] = useState(() => {
         const saved = localStorage.getItem("user")
-        if (!saved) return null;
-        const parsed = JSON.parse(saved);
-        if (parsed.loginTimestamp && Date.now() - parsed.loginTimestamp > SESSION_DURATION) {
-            localStorage.removeItem("user");
-            return null;
+        if (!saved) return null
+        const parsed = JSON.parse(saved)
+        const duration = parsed.rememberMe ? SESSION_DURATION_REMEMBER : SESSION_DURATION
+        if (parsed.loginTimestamp && Date.now() - parsed.loginTimestamp > duration) {
+            localStorage.removeItem("user")
+            return null
         }
-        return parsed;
+        return parsed
     })
+
+    /* ── Persist users to localStorage whenever they change ── */
+    useEffect(() => {
+        localStorage.setItem(USERS_KEY, JSON.stringify(users))
+    }, [users])
 
     /* ── Session expiry check ── */
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser) return
         const checkSession = () => {
-            if (currentUser.loginTimestamp && Date.now() - currentUser.loginTimestamp > SESSION_DURATION) {
-                logout();
+            const duration = currentUser.rememberMe ? SESSION_DURATION_REMEMBER : SESSION_DURATION
+            if (currentUser.loginTimestamp && Date.now() - currentUser.loginTimestamp > duration) {
+                logout()
             }
-        };
-        const interval = setInterval(checkSession, 60000); // Check every minute
-        return () => clearInterval(interval);
-    }, [currentUser]);
+        }
+        const interval = setInterval(checkSession, 60000)
+        return () => clearInterval(interval)
+    }, [currentUser])
 
     /* ── helpers ── */
     const syncCurrent = (updatedUsers) => {
         if (!currentUser) return
         const refreshed = updatedUsers.find(u => u.id === currentUser.id)
         if (refreshed) {
-            const nextCurrent = { ...refreshed, loginTimestamp: currentUser.loginTimestamp };
+            const nextCurrent = { ...refreshed, loginTimestamp: currentUser.loginTimestamp, rememberMe: currentUser.rememberMe }
             setCurrentUser(nextCurrent)
             localStorage.setItem("user", JSON.stringify(nextCurrent))
         }
     }
 
     /* ── Login ── */
-    const login = (email, password) => {
+    const login = (email, password, rememberMe = false) => {
         const user = users.find(u => u.email === email && u.password === password)
         if (!user) return { success: false, message: "Invalid email or password." }
         if (user.blocked) return { success: false, message: "Your account has been blocked. Please contact the administrator." }
 
-        const loginUser = { ...user, loginTimestamp: Date.now() };
+        const loginUser = { ...user, loginTimestamp: Date.now(), rememberMe }
         setCurrentUser(loginUser)
         localStorage.setItem("user", JSON.stringify(loginUser))
         return { success: true }
@@ -63,6 +78,7 @@ export const AuthProvider = ({ children }) => {
 
         const newUser = {
             id: Date.now(),
+            customId: `CLT-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
             name,
             email,
             password,
@@ -74,8 +90,8 @@ export const AuthProvider = ({ children }) => {
 
         const next = [...users, newUser]
         setUsers(next)
-        
-        const loginUser = { ...newUser, loginTimestamp: Date.now() };
+
+        const loginUser = { ...newUser, loginTimestamp: Date.now(), rememberMe: false }
         setCurrentUser(loginUser)
         localStorage.setItem("user", JSON.stringify(loginUser))
         return { success: true }
@@ -99,12 +115,14 @@ export const AuthProvider = ({ children }) => {
     /* ══ Admin-only helpers ══════════════════════════════════════════ */
 
     /* Add a user directly (admin creates client/manager without sign-up flow) */
-    const addUser = ({ name, email, password, role = "client", location = "" }) => {
+    const addUser = ({ name, email, password, role = "client", location = "", customId = "" }) => {
         const exists = users.find(u => u.email === email)
         if (exists) return { success: false, message: "Email already in use." }
 
+        const prefix = role === 'manager' ? 'MGR' : 'CLT'
         const newUser = {
             id: Date.now(),
+            customId: customId.trim() || `${prefix}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
             name,
             email,
             password,
@@ -124,10 +142,7 @@ export const AuthProvider = ({ children }) => {
 
     /* Toggle blocked status */
     const blockUser = (id, blocked) => {
-        setUsers(prev => {
-            const next = prev.map(u => u.id === id ? { ...u, blocked } : u)
-            return next
-        })
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, blocked } : u))
     }
 
     /* Promote / demote role (client ↔ manager); admin role is immutable */
@@ -141,7 +156,7 @@ export const AuthProvider = ({ children }) => {
         })
     }
 
-    /* Inline-edit any field on any user row (name, email, location, password) */
+    /* Inline-edit any field on any user row (name, email, location, password, customId) */
     const editUserField = (id, field, value) => {
         setUsers(prev => {
             const next = prev.map(u => u.id === id ? { ...u, [field]: value } : u)

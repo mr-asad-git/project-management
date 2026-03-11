@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
+
+const REMEMBER_KEY = 'pm_remembered_creds'
 
 /* ─── Three.js animated background ─── */
 function ThreeBackground({ darkMode }) {
@@ -215,6 +218,17 @@ const Login = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
+    /* ── Pre-fill saved credentials on mount ── */
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(REMEMBER_KEY)
+            if (saved) {
+                const { email, password } = JSON.parse(saved)
+                setForm(prev => ({ ...prev, email: email || '', password: password || '', remember: true }))
+            }
+        } catch {}
+    }, [])
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
         setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
@@ -225,10 +239,17 @@ const Login = () => {
         e.preventDefault()
         if (!form.email || !form.password) { setError('Please fill in all fields.'); return }
         setLoading(true)
-        await new Promise(r => setTimeout(r, 400)) // small UX delay
-        const result = login(form.email, form.password)
+        await new Promise(r => setTimeout(r, 400))
+        const result = login(form.email, form.password, form.remember)
         setLoading(false)
         if (result.success) {
+            /* Persist or clear saved credentials based on checkbox */
+            if (form.remember) {
+                localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email: form.email, password: form.password }))
+            } else {
+                localStorage.removeItem(REMEMBER_KEY)
+            }
+            toast.success('Welcome back! Signed in successfully.', { duration: 3000 })
             navigate('/', { replace: true })
         } else {
             setError(result.message)

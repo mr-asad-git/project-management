@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { Toaster, toast } from 'react-hot-toast'
 import { useTheme } from './context/ThemeContext'
 import { useAuth } from './context/AuthContext'
 
@@ -92,7 +93,7 @@ const App = () => {
   };
 
   const handleTaskAdd = (status, { title, text = '', priority, image = null }) => {
-    const newTask = { id: Date.now(), title, text, priority, status, comments: 0, files: 0, image };
+    const newTask = { id: Date.now(), title, text, priority, status, comments: 0, files: 0, image, dueDate: new Date().toISOString().slice(0, 10) };
     setProjectTasks(prev => ({
       ...prev,
       [selectedProjectID]: [...(prev[selectedProjectID] ?? []), newTask],
@@ -131,6 +132,7 @@ const App = () => {
     const newProject = { id: newId, name, status };
     setProjects(prev => [...prev, newProject]);
     setProjectTasks(prev => ({ ...prev, [newId]: [] }));
+    toast.success(`Project "${name}" created!`, { duration: 3000 });
   };
 
   const handleReorderProjects = (reorderedProjects) => {
@@ -163,6 +165,29 @@ const App = () => {
   }
 
   return (
+    <>
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        duration: 3000,
+        style: {
+          borderRadius: '14px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+          fontSize: '13px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          padding: '12px 16px',
+        },
+        success: {
+          iconTheme: { primary: '#7AC555', secondary: '#fff' },
+          style: { background: '#fff', color: '#0D062D', border: '1px solid #7AC555/20' },
+        },
+        error: {
+          iconTheme: { primary: '#D8727D', secondary: '#fff' },
+          style: { background: '#fff', color: '#0D062D', border: '1px solid rgba(216,114,125,0.2)' },
+        },
+      }}
+    />
     <Routes>
       {/* ── Auth pages ── */}
       <Route element={<PublicRoute user={currentUser} />}>
@@ -259,6 +284,7 @@ const App = () => {
         </ProtectedRoute>
       } />
     </Routes>
+    </>
   )
 }
 

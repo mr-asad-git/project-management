@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
+import toast from 'react-hot-toast'
 
 /* ─── Three.js animated background (rotating torus + floating rings) ─── */
 function ThreeBackground({ darkMode }) {
@@ -235,6 +236,7 @@ const SignUp = () => {
         const result = register({ name: form.name, email: form.email, password: form.password })
         setLoading(false)
         if (result.success) {
+            toast.success('Account created! Welcome aboard 🎉', { duration: 3500 })
             navigate('/', { replace: true })
         } else {
             setErrors({ general: result.message })
