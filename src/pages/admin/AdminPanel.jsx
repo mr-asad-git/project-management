@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import UserAvatar from '../../components/ui/UserAvatar'
@@ -6,9 +6,9 @@ import UserAvatar from '../../components/ui/UserAvatar'
 /* ── tiny reusable helpers ──────────────────────────────────────── */
 
 const ROLE_META = {
-    admin: { label: 'Admin', bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
-    manager: { label: 'Manager', bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
-    client: { label: 'Client', bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
+    admin: { label: 'Admin', bg: 'bg-violet-50 ring-1 ring-violet-200', text: 'text-violet-600', dot: 'bg-violet-400' },
+    manager: { label: 'Manager', bg: 'bg-sky-50 ring-1 ring-sky-200', text: 'text-sky-600', dot: 'bg-sky-400' },
+    client: { label: 'Client', bg: 'bg-teal-50 ring-1 ring-teal-200', text: 'text-teal-600', dot: 'bg-teal-400' },
 }
 
 const RoleBadge = ({ role }) => {
@@ -23,8 +23,60 @@ const RoleBadge = ({ role }) => {
 
 const StatusBadge = ({ blocked }) =>
     blocked
-        ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />Blocked</span>
-        : <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-600"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Active</span>
+        ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 ring-1 ring-rose-200"><span className="w-1.5 h-1.5 rounded-full bg-rose-400" />Blocked</span>
+        : <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 ring-1 ring-green-200"><span className="w-1.5 h-1.5 rounded-full bg-green-400" />Active</span>
+
+/* ── Click-based Role Dropdown ────────────────────────────────────── */
+const RoleSelect = ({ role, onPromote }) => {
+    const [open, setOpen] = useState(false)
+    const ref = useRef(null)
+
+    useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [])
+
+    const m = ROLE_META[role] ?? ROLE_META.client
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                onClick={() => setOpen(o => !o)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer transition-all ${m.bg} ${m.text} hover:opacity-80`}
+            >
+                <span className={`w-1.5 h-1.5 rounded-full ${m.dot}`} />
+                {m.label}
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"
+                    className={`ml-0.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>
+                    <path d="M6 9l6 6 6-6" />
+                </svg>
+            </button>
+            {open && (
+                <div className="absolute left-0 top-full mt-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-50 w-[140px]">
+                    {['client', 'manager'].map(r => {
+                        const rm = ROLE_META[r]
+                        return (
+                            <button
+                                key={r}
+                                onClick={() => { onPromote(r); setOpen(false) }}
+                                className={`w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold capitalize transition-colors ${role === r ? 'bg-[#5030E5]/8 text-[#5030E5]' : 'text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${rm.dot}`} />
+                                {rm.label}
+                                {role === r && (
+                                    <svg className="ml-auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
+}
 
 /* ── Inline editable cell ─────────────────────────────────────── */
 const InlineEdit = ({ value, onSave, type = 'text', disabled = false }) => {
@@ -221,6 +273,22 @@ const AdminPanel = () => {
         blocked: users.filter(u => u.blocked).length,
     }
 
+    const handleBlock = (user) => {
+        const willBlock = !user.blocked
+        blockUser(user.id, willBlock)
+        if (willBlock) {
+            toast.error(`${user.name} has been blocked.`, { icon: '🚫' })
+        } else {
+            toast.success(`${user.name}'s access has been restored.`, { icon: '✅' })
+        }
+    }
+
+    const handleDelete = () => {
+        toast.success(`User "${deleteTarget.name}" has been permanently deleted.`, { icon: '🗑️' })
+        removeUser(deleteTarget.id)
+        setDeleteTarget(null)
+    }
+
     return (
         <div className="px-6 md:px-10 py-8 flex flex-col gap-8 bg-[#FCFCFD] min-h-screen">
 
@@ -266,8 +334,8 @@ const AdminPanel = () => {
                             key={r}
                             onClick={() => setRoleFilter(r)}
                             className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all border ${roleFilter === r
-                                    ? 'bg-[#5030E5] text-white border-[#5030E5] shadow-sm'
-                                    : 'bg-white text-slate-500 border-slate-200 hover:border-[#5030E5]/40'
+                                ? 'bg-[#5030E5] text-white border-[#5030E5] shadow-sm'
+                                : 'bg-white text-slate-500 border-slate-200 hover:border-[#5030E5]/40'
                                 }`}
                         >
                             {r === 'all' ? 'All' : r}
@@ -278,10 +346,10 @@ const AdminPanel = () => {
 
             {/* Table */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overflow-y-auto min-h-[520px]">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/70">
+                            <tr className="border-b border-slate-100 bg-slate-50/20">
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">User</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">ID</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Email</th>
@@ -306,7 +374,7 @@ const AdminPanel = () => {
                                     user={u}
                                     isSelf={u.id === currentUser?.id}
                                     onEdit={(field, val) => editUserField(u.id, field, val)}
-                                    onBlock={() => blockUser(u.id, !u.blocked)}
+                                    onBlock={() => handleBlock(u)}
                                     onPromote={newRole => promoteUser(u.id, newRole)}
                                     onDelete={() => setDeleteTarget(u)}
                                 />
@@ -325,7 +393,7 @@ const AdminPanel = () => {
                 <DeleteConfirm
                     user={deleteTarget}
                     onClose={() => setDeleteTarget(null)}
-                    onConfirm={() => { removeUser(deleteTarget.id); setDeleteTarget(null) }}
+                    onConfirm={handleDelete}
                 />
             )}
         </div>
@@ -335,7 +403,7 @@ const AdminPanel = () => {
 /* ── User Row ─────────────────────────────────────────────────── */
 const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
     return (
-        <tr className={`group transition-colors hover:bg-slate-50/80 ${user.blocked ? 'opacity-60' : ''}`}>
+        <tr className={`group transition-colors hover:bg-slate-500/40 ${user.blocked ? 'opacity-60' : ''}`}>
             {/* Avatar + Name */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3 min-w-[160px]">
@@ -373,24 +441,9 @@ const UserRow = ({ user, isSelf, onEdit, onBlock, onPromote, onDelete }) => {
                 <InlineEdit value={user.password} onSave={v => onEdit('password', v)} type="password" />
             </td>
 
-            {/* Role */}
+            {/* Role — click dropdown */}
             <td className="px-6 py-4">
-                <div className="relative group/role">
-                    <RoleBadge role={user.role} />
-                    <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-50 hidden group-hover/role:block w-[130px]">
-                        {['client', 'manager'].map(r => (
-                            <button
-                                key={r}
-                                onClick={() => onPromote(r)}
-                                className={`w-full text-left flex items-center gap-2 px-4 py-2.5 text-xs font-bold capitalize transition-colors ${user.role === r ? 'bg-[#5030E5]/10 text-[#5030E5]' : 'text-slate-600 hover:bg-slate-50'}`}
-                            >
-                                <span className={`w-2 h-2 rounded-full ${r === 'manager' ? 'bg-blue-500' : 'bg-slate-400'}`} />
-                                {r}
-                                {user.role === r && <svg className="ml-auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <RoleSelect role={user.role} onPromote={onPromote} />
             </td>
 
             {/* Status */}

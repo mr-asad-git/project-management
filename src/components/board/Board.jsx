@@ -3,10 +3,10 @@ import Column from './Column'
 import { useAuth } from '../../context/AuthContext'
 
 const COLUMNS = [
-    { title: 'On Hold', status: 'onHold' },
     { title: 'To Do', status: 'todo' },
     { title: 'In Progress', status: 'inProgress' },
     { title: 'Completed', status: 'completed' },
+    { title: 'On Hold', status: 'onHold' },
 ]
 
 const PRIORITY_OPTIONS = ['Low', 'High']

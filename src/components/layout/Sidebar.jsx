@@ -481,25 +481,6 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                         </div>
                     </div>
 
-                    {/* Spacer to push the thoughts card down if the list is short */}
-                    <div className="flex-1" />
-
-                    {/* Thoughts card */}
-                    <div className={`px-6 pb-6 pt-2 mt-auto relative transition-all duration-500 ease-in-out z-10 ${sidebar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
-                        <div className="bg-[#F5F5F5] p-5 rounded-3xl relative flex flex-col items-center text-center gap-3 shadow-sm border border-white">
-                            <div className="absolute -top-6 w-12 h-12 bg-[#F5F5F5] rounded-full flex items-center justify-center border-4 border-white shadow-sm">
-                                <div className="w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-600">
-                                    <span className="text-[18px]">💡</span>
-                                </div>
-                            </div>
-                            <h4 className="text-[14px] font-bold mt-4 text-[#0D062D]">Thoughts Time</h4>
-                            <p className="text-[12px] text-[#787486] leading-relaxed">We don't have any notice for now, till then share your thoughts.</p>
-                            <button className="w-full py-2.5 bg-white text-[#0D062D] text-[12px] font-bold rounded-lg hover:bg-black hover:text-white transition-all duration-300 shadow-sm border border-[#DBDBDB]/50">
-                                Write a message
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             </aside>
         </>

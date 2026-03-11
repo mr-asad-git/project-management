@@ -28,7 +28,10 @@ const Members = ({ projectTasks, groups = [], projects = [] }) => {
         const userGroups = groups.filter(g => g.memberIds.includes(u.id));
         const projectIds = [...new Set(userGroups.flatMap(g => g.projectIds))];
         const userProjects = projects.filter(p => projectIds.includes(p.id)).map(p => p.name);
-        const assignedTasks = allTasks.filter((_, idx) => idx % users.length === i);
+        // Real tasks: only tasks from the projects this user is assigned to via groups
+        const assignedTasks = Object.entries(projectTasks || {})
+            .filter(([projectId]) => projectIds.includes(Number(projectId)))
+            .flatMap(([, tasks]) => tasks);
         return {
             ...u,
             color: COLORS[i % COLORS.length],
@@ -36,7 +39,7 @@ const Members = ({ projectTasks, groups = [], projects = [] }) => {
             assignedTasks,
             projects: userProjects,
         };
-    }), [users, groups, projects, allTasks]);
+    }), [users, groups, projects, projectTasks]);
 
     const filtered = members.filter(m =>
         m.name.toLowerCase().includes(search.toLowerCase()) ||

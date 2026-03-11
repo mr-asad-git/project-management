@@ -135,9 +135,9 @@ const Tasks = ({ projectTasks, projects }) => {
             {/* ── Task Table ── */}
             <div className="bg-white rounded-[28px] border border-slate-100 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
                 {/* Table Header */}
-                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 border-b border-slate-100 bg-slate-50/60">
+                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 border-b border-slate-100 bg-slate-50/30">
                     {['Task', 'Project', 'Priority', 'Status', 'Files'].map(h => (
-                        <span key={h} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{h}</span>
+                        <span key={h} className="text-[10px] font-black text-black uppercase tracking-wider">{h}</span>
                     ))}
                 </div>
 
@@ -149,7 +149,7 @@ const Tasks = ({ projectTasks, projects }) => {
                         return (
                             <div
                                 key={task.id}
-                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 items-center hover:bg-slate-50/50 transition-colors duration-150 group"
+                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 items-center hover:bg-slate-50/10 transition-colors duration-150 group"
                             >
                                 {/* Title */}
                                 <div className="flex flex-col gap-0.5 min-w-0">

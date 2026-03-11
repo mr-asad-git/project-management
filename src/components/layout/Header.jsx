@@ -88,7 +88,7 @@ const TaskCalendar = ({ projectTasks, projects, onClose }) => {
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-3xl shadow-[0_32px_80px_rgba(0,0,0,0.18)] w-[820px] max-w-[95vw] max-h-[90vh] overflow-auto flex flex-col"
+                className="bg-white rounded-3xl shadow-[0_32px_80px_rgba(0,0,0,0.18)] w-[820px] max-w-[95vw] h-[90vh] flex flex-col overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Calendar header */}
@@ -139,7 +139,7 @@ const TaskCalendar = ({ projectTasks, projects, onClose }) => {
                 </div>
 
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1 px-4 pb-5 flex-1">
+                <div className="grid grid-cols-7 gap-1 px-4 pb-5 flex-1 overflow-y-auto">
                     {/* Empty leading cells */}
                     {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                         <div key={`empty-${i}`} className="min-h-[88px]" />
