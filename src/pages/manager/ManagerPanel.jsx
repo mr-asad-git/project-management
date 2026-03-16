@@ -13,7 +13,7 @@ const sectionCls = "bg-white rounded-2xl border border-slate-100 shadow-[0_4px_2
 const headerCls = "px-6 py-5 border-b border-slate-50 flex items-center justify-between"
 
 /* ── Group Card ──────────────────────────────────────────────────── */
-const GroupCard = ({ group, allUsers, projects, onRename, onDelete, onToggleMember, onToggleProject, isManager }) => {
+const GroupCard = ({ group, allUsers, projects, projectTasks, onRename, onDelete, onToggleMember, onToggleProject, isManager }) => {
     const [editingName, setEditingName] = useState(false)
     const [nameDraft, setNameDraft] = useState(group.name)
     const [showMembers, setShowMembers] = useState(false)
@@ -24,6 +24,22 @@ const GroupCard = ({ group, allUsers, projects, onRename, onDelete, onToggleMemb
     const unassigned = allUsers.filter(u => u.role !== 'admin' && !group.memberIds.includes(u.id))
     const unassignedProjects = projects.filter(p => !group.projectIds.includes(p.id))
 
+    // Aggregate state logs from assigned projects
+    const recentActivity = React.useMemo(() => {
+        const logs = []
+        assignedProjects.forEach(p => {
+            const tasks = projectTasks[p.id] || []
+            tasks.forEach(t => {
+                if (t.stateLogs) {
+                    t.stateLogs.forEach(log => {
+                        logs.push({ ...log, taskName: t.title, projectName: p.name })
+                    })
+                }
+            })
+        })
+        return logs.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10) // Get top 10 recent
+    }, [assignedProjects, projectTasks])
+
     const commitName = () => {
         setEditingName(false)
         if (nameDraft.trim() && nameDraft !== group.name) onRename(group.id, nameDraft.trim())
@@ -31,6 +47,7 @@ const GroupCard = ({ group, allUsers, projects, onRename, onDelete, onToggleMemb
     }
 
     const STATUS_COLOR = { completed: '#7AC555', inProgress: '#FFA500', onHold: '#D87272', todo: '#5030E5' }
+    const STATUS_LABELS = { todo: 'To Do', inProgress: 'In Progress', completed: 'Completed', onHold: 'On Hold' }
 
     return (
         <div className={sectionCls}>
@@ -177,6 +194,39 @@ const GroupCard = ({ group, allUsers, projects, onRename, onDelete, onToggleMemb
                         </div>
                     )}
                 </div>
+
+                {/* Recent Activity Log */}
+                {assignedProjects.length > 0 && (
+                    <div className="pt-2 border-t border-slate-50">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Activity</span>
+                        </div>
+                        {recentActivity.length > 0 ? (
+                            <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-2">
+                                {recentActivity.map((log, i) => (
+                                    <div key={i} className="flex gap-2.5 text-[12px] items-start relative">
+                                        {i !== recentActivity.length - 1 && (
+                                            <div className="absolute left-[9.5px] top-5 bottom-[-16px] w-[1px] bg-slate-100" />
+                                        )}
+                                        <div className="w-5 h-5 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 z-10">
+                                            <div className="w-2 h-2 rounded-full bg-[#5030E5]" />
+                                        </div>
+                                        <div className="flex flex-col flex-1 pb-2">
+                                            <span className="text-slate-700 leading-tight">
+                                                <span className="font-bold text-[#0D062D]">{log.by}</span> moved task <span className="font-semibold">"{log.taskName}"</span> to <span className="font-bold text-[#5030E5]">{STATUS_LABELS[log.status] || log.status}</span>
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                                {new Date(log.date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} • In {log.projectName}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-slate-400 italic">No recent task activity recorded.</p>
+                        )}
+                    </div>
+                )}
 
                 <div className="text-[10px] text-slate-300 font-medium">Created {group.createdAt}</div>
             </div>
@@ -352,6 +402,7 @@ const ManagerPanel = ({ projects, projectTasks, groups, onAddGroup, onRenameGrou
                                     group={g}
                                     allUsers={nonAdminUsers}
                                     projects={projects}
+                                    projectTasks={projectTasks}
                                     onRename={onRenameGroup}
                                     onDelete={onDeleteGroup}
                                     onToggleMember={onGroupMemberToggle}

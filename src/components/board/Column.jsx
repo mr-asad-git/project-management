@@ -12,7 +12,7 @@ const ACCENT = {
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
 
-const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onTaskAdd, onTaskUpdate, allTasks = [] }) => {
+const Column = ({ title, status, tasks, isOver, isClient, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onTaskAdd, onTaskUpdate, allTasks = [] }) => {
     const accent = ACCENT[title] ?? '#D87272'
 
     const priorityOptions = status === 'completed' ? ['Completed'] : ['Low', 'High', 'Completed']
@@ -181,23 +181,25 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                     <div className="h-[8px] w-[8px] rounded-full flex-shrink-0" style={{ background: accent }} />
                     <h2 className="font-semibold text-[15px] text-[#0D062D]">{title}</h2>
 
-                    <div className="h-[22px] min-w-[22px] px-1.5 bg-[var(--text-primary)]/40 rounded-full flex justify-center items-center text-[#0D062D] text-[11px] font-bold">
+                    <div className="h-[22px] min-w-[22px] px-1.5 bg-slate-200 dark:bg-[var(--text-primary)]/40 rounded-full flex justify-center items-center text-[#0D062D] text-[11px] font-bold">
                         {tasks.length}
                     </div>
                 </div>
 
                 {/* Add Task button */}
-                <button
-                    onClick={openForm}
-                    title="Add task"
-                    className="group h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
-                    style={{ background: `${accent}18` }}
-                >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                </button>
+                {!isClient && (
+                    <button
+                        onClick={openForm}
+                        title="Add task"
+                        className="group h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+                        style={{ background: `${accent}18` }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </button>
+                )}
             </div>
 
             {/* Colour bar */}
@@ -359,6 +361,7 @@ const Column = ({ title, status, tasks, isOver, onDragStart, onDragEnd, onDragOv
                     <div key={task.id} className="flex-shrink-0">
                         <TaskCard
                             task={task}
+                            isClient={isClient}
                             onDragStart={() => onDragStart(task.id, task.status)}
                             onDragEnd={onDragEnd}
                             onEdit={() => handleEditOpen(task)}

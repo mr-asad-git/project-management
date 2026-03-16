@@ -73,7 +73,13 @@ const App = () => {
       ...prev,
       [selectedProjectID]: prev[selectedProjectID].map(t => {
         if (t.id !== taskId) return t;
-        return { ...t, status: newStatus, priority: newStatus === 'completed' ? 'Completed' : t.priority };
+        const newLog = { status: newStatus, by: currentUser.name, date: new Date().toISOString() };
+        return { 
+          ...t, 
+          status: newStatus, 
+          priority: newStatus === 'completed' ? 'Completed' : t.priority,
+          stateLogs: [newLog, ...(t.stateLogs || [])]
+        };
       }),
     }));
   };
@@ -93,7 +99,19 @@ const App = () => {
   };
 
   const handleTaskAdd = (status, { title, text = '', priority, image = null }) => {
-    const newTask = { id: Date.now(), title, text, priority, status, comments: 0, files: 0, image, dueDate: new Date().toISOString().slice(0, 10) };
+    const initialLog = { status, by: currentUser.name, date: new Date().toISOString() };
+    const newTask = { 
+      id: Date.now(), 
+      title, 
+      text, 
+      priority, 
+      status, 
+      comments: 0, 
+      files: 0, 
+      image, 
+      dueDate: new Date().toISOString().slice(0, 10),
+      stateLogs: [initialLog]
+    };
     setProjectTasks(prev => ({
       ...prev,
       [selectedProjectID]: [...(prev[selectedProjectID] ?? []), newTask],
@@ -108,7 +126,12 @@ const App = () => {
           if (t.id === taskId) {
             let nextStatus = updatedData.status !== undefined ? updatedData.status : t.status;
             if (updatedData.priority === 'Completed' && nextStatus !== 'completed') nextStatus = 'completed';
-            return { ...t, ...updatedData, status: nextStatus };
+            
+            let stateLogs = t.stateLogs || [];
+            if (nextStatus !== t.status) {
+                stateLogs = [{ status: nextStatus, by: currentUser.name, date: new Date().toISOString() }, ...stateLogs];
+            }
+            return { ...t, ...updatedData, status: nextStatus, stateLogs };
           }
           return t;
         });

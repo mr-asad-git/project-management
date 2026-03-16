@@ -264,6 +264,10 @@ const AdminPanel = () => {
             (u.customId || '').toLowerCase().includes(search.toLowerCase())
         const matchRole = roleFilter === 'all' || u.role === roleFilter
         return matchSearch && matchRole
+    }).sort((a, b) => {
+        if (a.role === 'manager' && b.role !== 'manager') return -1;
+        if (a.role !== 'manager' && b.role === 'manager') return 1;
+        return 0;
     })
 
     const stats = {
