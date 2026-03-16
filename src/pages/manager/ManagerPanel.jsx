@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import UserAvatar from '../../components/ui/UserAvatar'
 
@@ -303,7 +304,7 @@ const ProgressSection = ({ groups, projects, projectTasks }) => {
 }
 
 /* ── Main Manager Panel ──────────────────────────────────────────── */
-const ManagerPanel = ({ projects, projectTasks, groups, onAddGroup, onRenameGroup, onDeleteGroup, onGroupMemberToggle, onGroupProjectToggle }) => {
+const ManagerPanel = ({ projects, projectTasks, groups, onAddGroup, onRenameGroup, onDeleteGroup, onRestoreGroup, onGroupMemberToggle, onGroupProjectToggle }) => {
     const { users, currentUser } = useAuth()
     const isManager = currentUser?.role === 'manager' // managers can't delete groups
     const [newGroupName, setNewGroupName] = useState('')
@@ -316,6 +317,43 @@ const ManagerPanel = ({ projects, projectTasks, groups, onAddGroup, onRenameGrou
         onAddGroup({ name: newGroupName.trim() })
         setNewGroupName('')
         setCreatingGroup(false)
+    }
+
+    const handleDeleteGroupWithUndo = (groupId) => {
+        const groupToRestore = groups.find(g => g.id === groupId)
+        if (!groupToRestore) return
+
+        onDeleteGroup(groupId)
+
+        toast((t) => (
+            <div className="flex items-center gap-4 py-1">
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-bold text-[var(--toast-text)]">Group Deleted</span>
+                    <span className="text-[11px] font-medium text-[var(--toast-text)] opacity-60">Success! <strong>{groupToRestore.name}</strong> has been removed.</span>
+                </div>
+                <button
+                    onClick={() => {
+                        toast.dismiss(t.id)
+                        onRestoreGroup(groupToRestore)
+                        toast.success('Group restored successfully', {
+                            icon: '🔄',
+                            style: { border: '1px solid var(--toast-success)' }
+                        })
+                    }}
+                    className="ml-auto px-4 py-2 bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] rounded-xl text-[11px] font-bold transition-all shadow-md active:scale-95"
+                >
+                    Undo
+                </button>
+            </div>
+        ), {
+            duration: 6000,
+            style: {
+                minWidth: '320px',
+                border: '1px solid var(--toast-error)',
+                background: 'var(--toast-bg)',
+                padding: '12px 20px'
+            }
+        })
     }
 
     return (
@@ -404,7 +442,7 @@ const ManagerPanel = ({ projects, projectTasks, groups, onAddGroup, onRenameGrou
                                     projects={projects}
                                     projectTasks={projectTasks}
                                     onRename={onRenameGroup}
-                                    onDelete={onDeleteGroup}
+                                    onDelete={handleDeleteGroupWithUndo}
                                     onToggleMember={onGroupMemberToggle}
                                     onToggleProject={onGroupProjectToggle}
                                     isManager={isManager}

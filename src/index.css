@@ -39,6 +39,14 @@
     --accent: #5030E5;
     --accent-hover: #3d22c4;
     --accent-subtle: rgba(80, 48, 229, 0.08);
+    
+    /* Toast colors */
+    --toast-bg: #FFFFFF;
+    --toast-text: #0D062D;
+    --toast-border: rgba(80, 48, 229, 0.15);
+    --toast-success: #7AC555;
+    --toast-error: #D8727D;
+    --toast-info: #5030E5;
 }
 
 /* ─────────────────────────────────────────
@@ -69,6 +77,14 @@
     --accent: #6C4EF5;
     --accent-hover: #8B6FFF;
     --accent-subtle: rgba(108, 78, 245, 0.12);
+
+    /* Toast colors dark */
+    --toast-bg: #1E2438;
+    --toast-text: #FFFFFF;
+    --toast-border: rgba(108, 78, 245, 0.3);
+    --toast-success: #85D65D;
+    --toast-error: #E5828D;
+    --toast-info: #8B6FFF;
 
     color-scheme: dark;
 }

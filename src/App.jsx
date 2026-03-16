@@ -145,9 +145,17 @@ const App = () => {
   }
 
   const handleDeleteProject = (id) => {
+    const project = projects.find(p => p.id === id)
     setProjects(prev => prev.filter(p => p.id !== id))
     setProjectTasks(prev => { const next = { ...prev }; delete next[id]; return next })
     if (selectedProjectID === id) setSelectedProjectID(projects[0]?.id ?? null)
+    
+    if (project) {
+        toast.error(`Project "${project.name}" deleted.`, {
+            style: { border: '1px solid var(--toast-error)', color: 'var(--toast-text)' },
+            iconTheme: { primary: 'var(--toast-error)', secondary: 'var(--toast-bg)' }
+        });
+    }
   }
 
   const handleAddProject = ({ name, status }) => {
@@ -155,7 +163,10 @@ const App = () => {
     const newProject = { id: newId, name, status };
     setProjects(prev => [...prev, newProject]);
     setProjectTasks(prev => ({ ...prev, [newId]: [] }));
-    toast.success(`Project "${name}" created!`, { duration: 3000 });
+    toast.success(`Project "${name}" created!`, {
+        style: { border: '1px solid var(--toast-info)', color: 'var(--toast-text)' },
+        iconTheme: { primary: 'var(--toast-info)', secondary: 'var(--toast-bg)' }
+    });
   };
 
   const handleReorderProjects = (reorderedProjects) => {
@@ -171,6 +182,9 @@ const App = () => {
   }
   const handleDeleteGroup = (id) => {
     setGroups(prev => prev.filter(g => g.id !== id))
+  }
+  const handleRestoreGroup = (group) => {
+    setGroups(prev => [...prev, group])
   }
   const handleGroupMemberToggle = (groupId, memberId) => {
     setGroups(prev => prev.map(g => {
@@ -194,20 +208,23 @@ const App = () => {
       toastOptions={{
         duration: 3000,
         style: {
-          borderRadius: '14px',
+          borderRadius: '16px',
           fontFamily: 'Inter, sans-serif',
           fontWeight: 600,
           fontSize: '13px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          padding: '12px 16px',
+          boxShadow: 'var(--shadow-lg)',
+          padding: '12px 18px',
+          background: 'var(--toast-bg)',
+          color: 'var(--toast-text)',
+          border: '1px solid var(--toast-border)',
         },
         success: {
-          iconTheme: { primary: '#7AC555', secondary: '#fff' },
-          style: { background: '#fff', color: '#0D062D', border: '1px solid #7AC555/20' },
+          iconTheme: { primary: 'var(--toast-success)', secondary: 'var(--toast-bg)' },
+          style: { border: '1px solid var(--toast-success)' },
         },
         error: {
-          iconTheme: { primary: '#D8727D', secondary: '#fff' },
-          style: { background: '#fff', color: '#0D062D', border: '1px solid rgba(216,114,125,0.2)' },
+          iconTheme: { primary: 'var(--toast-error)', secondary: 'var(--toast-bg)' },
+          style: { border: '1px solid var(--toast-error)' },
         },
       }}
     />
@@ -269,6 +286,7 @@ const App = () => {
                       onAddGroup={handleAddGroup}
                       onRenameGroup={handleRenameGroup}
                       onDeleteGroup={handleDeleteGroup}
+                      onRestoreGroup={handleRestoreGroup}
                       onGroupMemberToggle={handleGroupMemberToggle}
                       onGroupProjectToggle={handleGroupProjectToggle}
                     />
