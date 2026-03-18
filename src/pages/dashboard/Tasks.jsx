@@ -135,8 +135,8 @@ const Tasks = ({ projectTasks, projects }) => {
             {/* ── Task Table ── */}
             <div className="bg-white rounded-[28px] border border-slate-100 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
                 {/* Table Header */}
-                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 border-b border-slate-100 bg-slate-50/30">
-                    {['Task', 'Project', 'Priority', 'Status', 'Files'].map(h => (
+                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto_auto] gap-4 px-6 py-4 border-b border-slate-100 bg-slate-50/30">
+                    {['Task', 'Project', 'Priority', 'Status', 'Comments', 'Files'].map(h => (
                         <span key={h} className="text-[10px] font-black text-black uppercase tracking-wider">{h}</span>
                     ))}
                 </div>
@@ -149,7 +149,7 @@ const Tasks = ({ projectTasks, projects }) => {
                         return (
                             <div
                                 key={task.id}
-                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 items-center hover:bg-slate-50/10 transition-colors duration-150 group"
+                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto_auto] gap-4 px-6 py-4 items-center hover:bg-slate-50/10 transition-colors duration-150 group"
                             >
                                 {/* Title */}
                                 <div className="flex flex-col gap-0.5 min-w-0">
@@ -179,6 +179,16 @@ const Tasks = ({ projectTasks, projects }) => {
                                         style={{ color: sCfg.color, backgroundColor: sCfg.bg }}
                                     >
                                         {sCfg.label}
+                                    </span>
+                                </div>
+
+                                {/* Comments */}
+                                <div className="flex items-center gap-1 text-slate-400">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                    <span className="text-xs font-bold">
+                                        {(Number(task.comments) || 0) + (() => {
+                                            try { return JSON.parse(localStorage.getItem(`task_comments_${task.id}`) || '[]').length; } catch { return 0; }
+                                        })()}
                                     </span>
                                 </div>
 

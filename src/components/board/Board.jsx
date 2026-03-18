@@ -254,8 +254,6 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTa
 
         if (!id || targetStatus === from) return
 
-        if (isClient) return
-
         if (from === 'completed' && targetStatus !== 'completed') {
             const task = tasks.find(t => t.id === id)
             if (task) {
@@ -326,9 +324,9 @@ const Board = ({ tasks, onTaskMove, onTaskDelete, onTaskRestore, onTaskAdd, onTa
                         isClient={isClient}
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
-                        onDragOver={() => !overBin && !isClient && setOverCol(col.status)}
+                        onDragOver={() => !overBin && setOverCol(col.status)}
                         onDragLeave={() => setOverCol(prev => prev === col.status ? null : prev)}
-                        onDrop={() => !overBin && !isClient && handleDrop(col.status)}
+                        onDrop={() => !overBin && handleDrop(col.status)}
                         onTaskAdd={(taskData) => onTaskAdd && onTaskAdd(col.status, taskData)}
                         onTaskUpdate={onTaskUpdate}
                         allTasks={tasks}

@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import users from '../../data/users'
 import UserAvatar from '../ui/UserAvatar'
-import message from '/message.svg'
-import file from '/File.svg'
+import { useAuth } from '../../context/AuthContext'
+import messageIcon from '/message.svg'
+import fileIcon from '/File.svg'
 
 const STATUS_LABELS = {
     todo: 'To Do',
@@ -12,16 +13,83 @@ const STATUS_LABELS = {
 }
 
 const TaskCard = ({ task, isClient, onDragStart, onDragEnd, onEdit }) => {
+    const { currentUser } = useAuth()
     const [isDragging, setIsDragging] = useState(false)
     const [imgError, setImgError] = useState(false)
     const [showLogInfo, setShowLogInfo] = useState(false)
+    
+    // Comments state
+    const [showComments, setShowComments] = useState(false)
+    const [comments, setComments] = useState([])
+    const [newComment, setNewComment] = useState('')
+    const [showAllComments, setShowAllComments] = useState(false)
+    
+    // Edit comment state
+    const [editingCommentId, setEditingCommentId] = useState(null)
+    const [editCommentText, setEditCommentText] = useState('')
+
+    // Load comments from localStorage on mount
+    useEffect(() => {
+        const stored = localStorage.getItem(`task_comments_${task.id}`)
+        if (stored) {
+            try {
+                setComments(JSON.parse(stored))
+            } catch (e) { console.error('Error parsing comments', e) }
+        }
+    }, [task.id])
+
+    // Save comments to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem(`task_comments_${task.id}`, JSON.stringify(comments))
+    }, [comments, task.id])
+
+    const handleAddComment = (e) => {
+        e.preventDefault()
+        const text = newComment.trim()
+        if (!text) return
+        
+        const commentObj = {
+            id: Date.now(),
+            text,
+            authorName: currentUser.name,
+            authorId: currentUser.id,
+            timestamp: new Date().toISOString()
+        }
+        setComments(prev => [commentObj, ...prev])
+        setNewComment('')
+        // Automatically show all if we just added one so user sees it
+        setShowAllComments(true)
+    }
+
+    const handleDeleteComment = (commentId) => {
+        setComments(prev => prev.filter(c => c.id !== commentId))
+    }
+
+    const startEditing = (comment) => {
+        setEditingCommentId(comment.id)
+        setEditCommentText(comment.text)
+    }
+
+    const handleSaveEdit = (commentId) => {
+        const text = editCommentText.trim()
+        if (!text) return
+        setComments(prev => prev.map(c => 
+            c.id === commentId ? { ...c, text, timestamp: new Date().toISOString() } : c
+        ))
+        setEditingCommentId(null)
+        setEditCommentText('')
+    }
+
+    // Number of comments currently displayed
+    const displayedComments = showAllComments ? comments : comments.slice(0, 3)
+    const mockBaseComments = Number(task.comments) || 0;
+    const totalCommentsCount = mockBaseComments + comments.length;
 
     return (
         <>
             <div
-                draggable={!isClient}
+                draggable={true}
                 onDragStart={(e) => {
-                    if (isClient) { e.preventDefault(); return; }
                     setIsDragging(true)
                     e.dataTransfer.effectAllowed = 'move'
                     e.dataTransfer.setData('text/plain', String(task.id))
@@ -124,16 +192,146 @@ const TaskCard = ({ task, isClient, onDragStart, onDragEnd, onEdit }) => {
                             ))}
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1 text-[#787486]">
-                                <img src={message} alt="comments" className="h-3.5 w-3.5 opacity-60" />
-                                <span className="text-[12px] font-medium">{task.comments}</span>
+                            <div 
+                                className="flex items-center gap-1 text-[#787486] cursor-pointer hover:text-[#5030E5] transition-colors group/stat"
+                                onClick={(e) => { e.stopPropagation(); setShowComments(!showComments); }}
+                                title="Toggle Comments"
+                            >
+                                <img src={messageIcon} alt="comments" className="h-3.5 w-3.5 opacity-60 group-hover/stat:opacity-100 group-hover/stat:drop-shadow-md transition-all" />
+                                <span className="text-[12px] font-medium transition-colors">{totalCommentsCount}</span>
                             </div>
-                            <div className="flex items-center gap-1 text-[#787486]">
-                                <img src={file} alt="files" className="h-3.5 w-3.5 opacity-60" />
-                                <span className="text-[12px] font-medium">{task.files}</span>
+                            <div className="flex items-center gap-1 text-[#787486] cursor-pointer hover:text-[#5030E5] transition-colors group/stat">
+                                <img src={fileIcon} alt="files" className="h-3.5 w-3.5 opacity-60 group-hover/stat:opacity-100 group-hover/stat:drop-shadow-md transition-all" />
+                                <span className="text-[12px] font-medium transition-colors">{task.files}</span>
                             </div>
                         </div>
                     </div>
+                    {/* Dynamic Comments Section */}
+                    {showComments && (
+                        <div className="mt-4 pt-3 border-t border-[#F3F4F6] flex flex-col gap-3" onClick={e => e.stopPropagation()}>
+                            
+                            {/* Comments List */}
+                            {comments.length > 0 ? (
+                                <div className="flex flex-col gap-3">
+                                    {displayedComments.map(c => {
+                                        const isEditing = editingCommentId === c.id
+                                        const isAuthor = c.authorId === currentUser.id
+
+                                        return (
+                                            <div key={c.id} className="flex gap-2 items-start group/comment">
+                                                <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-indigo-700 capitalize">
+                                                    {c.authorName?.charAt(0) || '?'}
+                                                </div>
+                                                <div className="flex flex-col bg-gray-50 rounded-xl rounded-tl-sm px-3 py-2 flex-1">
+                                                    <div className="flex justify-between items-center mb-0.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[11px] font-bold text-[#0D062D]">{c.authorName}</span>
+                                                            <span className="text-[9px] font-medium text-gray-400">
+                                                                {new Date(c.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        {isAuthor && !isEditing && (
+                                                            <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                                                <button 
+                                                                    onClick={() => startEditing(c)}
+                                                                    className="p-1 hover:bg-indigo-100 rounded text-indigo-600 transition-colors"
+                                                                    title="Edit"
+                                                                >
+                                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleDeleteComment(c.id)}
+                                                                    className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
+                                                                    title="Delete"
+                                                                >
+                                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {isEditing ? (
+                                                        <div className="flex flex-col gap-2 mt-1">
+                                                            <textarea
+                                                                value={editCommentText}
+                                                                onChange={e => setEditCommentText(e.target.value)}
+                                                                maxLength={200}
+                                                                className="w-full text-[12px] bg-white border border-indigo-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 transition-all resize-none"
+                                                                rows={2}
+                                                            />
+                                                            <div className="flex justify-end gap-2">
+                                                                <button 
+                                                                    onClick={() => setEditingCommentId(null)}
+                                                                    className="text-[10px] font-bold text-gray-400 hover:text-gray-600"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleSaveEdit(c.id)}
+                                                                    disabled={!editCommentText.trim()}
+                                                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 disabled:text-gray-300"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[12px] text-[#0D062D] leading-snug break-words whitespace-pre-wrap">{c.text}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                    
+                                    {!showAllComments && comments.length > 3 && (
+                                        <button 
+                                            onClick={() => setShowAllComments(true)}
+                                            className="text-[11px] font-semibold text-[#5030E5] hover:text-[#3d22c4] self-start transition-colors"
+                                        >
+                                            See previous comments ({comments.length - 3})
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-[11px] text-gray-400 font-medium italic mb-1">No comments yet. Be the first!</p>
+                            )}
+
+                            {/* Add Comment Input */}
+                            <form onSubmit={handleAddComment} className="flex gap-2 items-end mt-1">
+                                <UserAvatar user={currentUser} className="w-6 h-6 rounded-full flex-shrink-0 mb-1" />
+                                <div className="flex-1 relative">
+                                    <textarea
+                                        value={newComment}
+                                        onChange={e => setNewComment(e.target.value)}
+                                        placeholder="Write a comment..."
+                                        maxLength={200}
+                                        rows={Math.min(3, newComment.split('\n').length)}
+                                        className="w-full text-[12px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-[#5030E5] focus:bg-white transition-colors resize-none overflow-hidden"
+                                        style={{ minHeight: '34px' }}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleAddComment(e);
+                                            }
+                                        }}
+                                    />
+                                    <div className="flex justify-between items-center mt-1 px-1">
+                                        <span className={`text-[9px] font-medium ${newComment.length >= 200 ? 'text-red-500' : 'text-gray-400'}`}>
+                                            {newComment.length}/200
+                                        </span>
+                                        <button 
+                                            type="submit" 
+                                            disabled={!newComment.trim()}
+                                            className="text-[10px] font-bold text-[#5030E5] disabled:text-gray-300 disabled:cursor-not-allowed hover:text-[#3d22c4] transition-colors"
+                                        >
+                                            Post
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    )}
                 </div>
             </div>
 
