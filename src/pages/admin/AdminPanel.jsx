@@ -281,16 +281,23 @@ const AdminPanel = () => {
         const willBlock = !user.blocked
         blockUser(user.id, willBlock)
         if (willBlock) {
-            toast.error(`${user.name} has been blocked.`, { icon: '🚫' })
+            toast.error(`${user.name} has been blocked.`)
         } else {
-            toast.success(`${user.name}'s access has been restored.`, { icon: '✅' })
+            toast.success(`${user.name}'s access has been restored.`)
         }
     }
 
     const handleDelete = () => {
-        toast.success(`User "${deleteTarget.name}" has been permanently deleted.`, { icon: '🗑️' })
+        toast.success(`User "${deleteTarget.name}" has been permanently deleted.`)
         removeUser(deleteTarget.id)
         setDeleteTarget(null)
+    }
+
+    const handlePromote = (user, newRole) => {
+        const oldRole = user.role
+        if (oldRole === newRole) return
+        promoteUser(user.id, newRole)
+        toast.success(`${user.name} is now a ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}.`)
     }
 
     return (
@@ -379,7 +386,7 @@ const AdminPanel = () => {
                                     isSelf={u.id === currentUser?.id}
                                     onEdit={(field, val) => editUserField(u.id, field, val)}
                                     onBlock={() => handleBlock(u)}
-                                    onPromote={newRole => promoteUser(u.id, newRole)}
+                                    onPromote={newRole => handlePromote(u, newRole)}
                                     onDelete={() => setDeleteTarget(u)}
                                 />
                             ))}

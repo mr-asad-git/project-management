@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react"
+import toast from 'react-hot-toast'
 import seedUsers from "../data/users"
 
-const SESSION_DURATION          = 10 * 60 * 60 * 1000        // 10 hours
+const SESSION_DURATION = 10 * 60 * 60 * 1000        // 10 hours
 const SESSION_DURATION_REMEMBER = 30 * 24 * 60 * 60 * 1000   // 30 days
 const USERS_KEY = 'pm_users'
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const saved = localStorage.getItem(USERS_KEY)
             if (saved) return JSON.parse(saved)
-        } catch {}
+        } catch { }
         return seedUsers
     })
 
@@ -39,12 +40,17 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (!currentUser) return
         const checkSession = () => {
+            const now = Date.now()
             const duration = currentUser.rememberMe ? SESSION_DURATION_REMEMBER : SESSION_DURATION
-            if (currentUser.loginTimestamp && Date.now() - currentUser.loginTimestamp > duration) {
-                logout()
+            const loginTime = currentUser.loginTimestamp || 0
+
+            if (now - loginTime > duration) {
+                logout(true)
             }
         }
-        const interval = setInterval(checkSession, 60000)
+        // Check more frequently (every 10 seconds) for better responsiveness during testing, 
+        // though 60 seconds is fine for 10 hours. Let's keep it 30 for a good balance.
+        const interval = setInterval(checkSession, 30000)
         return () => clearInterval(interval)
     }, [currentUser])
 
@@ -107,9 +113,21 @@ export const AuthProvider = ({ children }) => {
     }
 
     /* ── Logout ── */
-    const logout = () => {
+    const logout = (autoSignOut = false) => {
         setCurrentUser(null)
         localStorage.removeItem("user")
+        if (autoSignOut) {
+            toast.error("Session expired. Please sign in again.", {
+                duration: 5000,
+                icon: '🕒',
+                style: {
+                    border: '1px solid #ef4444',
+                    padding: '16px',
+                    color: '#ef4444',
+                    background: '#fff',
+                },
+            })
+        }
     }
 
     /* ══ Admin-only helpers ══════════════════════════════════════════ */

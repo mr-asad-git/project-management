@@ -9,6 +9,7 @@ const userData = [
         image: "/users/u1.svg",
         blocked: false,
     },
+
     // Clients & Managers are created at runtime via sign-up or the Admin Panel.
 ]
 

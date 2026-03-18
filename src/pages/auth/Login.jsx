@@ -226,7 +226,7 @@ const Login = () => {
                 const { email, password } = JSON.parse(saved)
                 setForm(prev => ({ ...prev, email: email || '', password: password || '', remember: true }))
             }
-        } catch {}
+        } catch { }
     }, [])
 
     const handleChange = (e) => {
@@ -373,7 +373,7 @@ const Login = () => {
                                 margin: 0,
                                 marginBottom: 16,
                             }}>
-                                Welcome<br />back! 👋
+                                Welcome back!
                             </h2>
                             <p style={{
                                 color: 'rgba(255,255,255,0.72)',
