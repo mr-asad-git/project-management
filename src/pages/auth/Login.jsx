@@ -450,7 +450,7 @@ const Login = () => {
                                     name="email"
                                     type="email"
                                     autoComplete="email"
-                                    placeholder="you@company.com"
+                                    placeholder="admin@taskflow.com"
                                     value={form.email}
                                     onChange={handleChange}
                                     style={{
@@ -500,7 +500,7 @@ const Login = () => {
                                         name="password"
                                         type={showPw ? 'text' : 'password'}
                                         autoComplete="current-password"
-                                        placeholder="••••••••"
+                                        placeholder="admin123"
                                         value={form.password}
                                         onChange={handleChange}
                                         style={{
