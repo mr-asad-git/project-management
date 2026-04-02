@@ -340,7 +340,7 @@ const Login = () => {
                         }} />
                         <div style={{
                             position: 'absolute', width: 160, height: 160, borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.04)', bottom: 40, left: -40,
+                            background: 'rgba(251, 37, 37, 0.04)', bottom: 40, left: -40,
                         }} />
 
                         {/* Logo row */}

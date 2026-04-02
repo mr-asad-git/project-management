@@ -365,8 +365,8 @@ const Sidebar = ({ sidebar, toggleSidebar, selectedProjectID, setSelectedProject
                     {/* Logo / toggle */}
                     <div className={`Header sticky top-0 left-0 z-50 bg-white/50 backdrop-blur-sm flex items-center ${sidebar ? 'justify-between px-6' : 'justify-center'} h-20 border-b border-[#DBDBDB]/50`}>
                         <div className={`flex items-center gap-1 overflow-hidden transition-all duration-300 ${sidebar ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>
-                            <img src="/VBT-Logo.png" className="h-[24px] w-[24px] object-contain flex-shrink-0" alt="Logo" />
-                            <h1 className="font-bold text-[18px] tracking-tight text-[#0D062D] whitespace-nowrap">VisionBird</h1>
+                            <img src="/logo.svg" className="h-[24px] w-[24px] object-contain flex-shrink-0" alt="Logo" />
+                            <h1 className="font-bold text-[18px] tracking-tight text-[#0D062D] whitespace-nowrap">TaskFlow</h1>
                         </div>
                         <div className="flex justify-center items-center h-20">
                             <button onClick={toggleSidebar} className="p-1.5 hover:bg-gray-100 cursor-pointer rounded-lg transition-all duration-200 active:scale-90 flex-shrink-0">
